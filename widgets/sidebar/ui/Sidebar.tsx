@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router';
+import { LoopLogoIcon } from 'shared/ui';
 
 const navItems = [
   {
@@ -32,7 +33,7 @@ const navItems = [
     ),
   },
   {
-    to: '/review',
+    to: '/history',
     label: '회고 히스토리',
     icon: (
       <svg
@@ -51,7 +52,11 @@ const navItems = [
 export function Sidebar() {
   return (
     <aside className="w-[288px] shrink-0 h-screen bg-white border-r border-sub3">
-      <nav className="mt-[132px]">
+      <div className="flex items-center gap-3 px-7.25 h-33">
+        <LoopLogoIcon size={40} />
+        <span className="text-2xl font-semibold text-main1">Loop</span>
+      </div>
+      <nav>
         {navItems.map(({ to, label, icon }) => (
           <NavLink
             key={to}
