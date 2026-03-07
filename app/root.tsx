@@ -6,8 +6,10 @@ import {
   Scripts,
   ScrollRestoration,
 } from 'react-router';
+import { ApolloProvider } from '@apollo/client/react';
 
 import type { Route } from './+types/root';
+import { apolloClient } from '../shared/api';
 import './app.css';
 
 export const links: Route.LinksFunction = () => [
@@ -42,7 +44,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <ApolloProvider client={apolloClient}>
+      <Outlet />
+    </ApolloProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
