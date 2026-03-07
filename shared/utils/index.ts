@@ -1,1 +1,1 @@
-export { formatMonthDay } from './formatDate';
+export { formatMonthDay, formatFullDate } from './formatDate';
