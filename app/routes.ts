@@ -5,4 +5,16 @@ import {
   route,
 } from '@react-router/dev/routes';
 
-export default [index('routes/home.tsx')] satisfies RouteConfig;
+export default [
+  layout('routes/layout.tsx', [
+    index('routes/home.tsx'),
+    route('history', 'routes/history.tsx'),
+  ]),
+  route('review', 'routes/review.tsx'),
+  route('auth', 'routes/auth/layout.tsx', [
+    index('routes/auth/index.tsx'),
+    route('login', 'routes/auth/login.tsx'),
+    route('join', 'routes/auth/join.tsx'),
+    route('todo', 'routes/todo.tsx'),
+  ]),
+] satisfies RouteConfig;

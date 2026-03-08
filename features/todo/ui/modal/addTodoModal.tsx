@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Button } from "~/components/ui/button";
+import { useState } from 'react';
+import { Button } from 'components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -8,8 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "~/components/ui/dialog";
-import { Input } from "~/components/ui/input";
+} from 'components/ui/dialog';
+import { Input } from 'components/ui/input';
 
 interface AddTodoProps {
   onAddTodo: (title: string) => void;
@@ -17,19 +17,19 @@ interface AddTodoProps {
 
 export function AddTodo({ onAddTodo }: AddTodoProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [goalText, setGoalText] = useState("");
+  const [goalText, setGoalText] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!goalText.trim()) return;
 
     onAddTodo(goalText);
-    setGoalText("");
+    setGoalText('');
     setIsOpen(false);
   };
 
   const handleCancel = () => {
-    setGoalText("");
+    setGoalText('');
     setIsOpen(false);
   };
 
