@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Send, MoreVertical, Trash2, Plus } from "lucide-react";
-import { AddTodo } from "./ui/modal/addTodo";
+import { AddTodo } from "./ui/modal/addTodoModal";
 import { Separator } from "~/components/ui/separator";
 
 interface TodoItem {

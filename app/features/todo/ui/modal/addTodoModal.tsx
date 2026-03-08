@@ -22,7 +22,7 @@ export function AddTodo({ onAddTodo }: AddTodoProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!goalText.trim()) return;
-    
+
     onAddTodo(goalText);
     setGoalText("");
     setIsOpen(false);
