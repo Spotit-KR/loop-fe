@@ -1,87 +1,41 @@
-# Welcome to React Router!
-
-A modern, production-ready template for building full-stack React applications using React Router.
-
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
-
-## Features
-
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
-
-## Getting Started
-
-### Installation
-
-Install the dependencies:
-
-```bash
-npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
+## 프로젝트 디렉토리 구조
 
 ```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
+root
+├── app/                    # 전역 설정 (app.css, 라우팅)
+├── widgets/                # 결합된 UI 블록
+│   └── header/
+├── features/               # 사용자 액션 위주
+│   └── auth-by-email/
+│   └── add-to-cart/
+├── entities/               # 비즈니스 데이터 모델
+│   └── product/
+│       ├── ui/
+│       ├── model/
+│       └── api/
+└── shared/                 # 공용 UI 및 유틸
+    ├── ui/                 # Button, Input 등
+    └── api/                # Axios 인스턴스 등
 ```
 
-## Styling
+### ⚠️ 중요 규칙 (Strict Rules)
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+- Public API: 각 슬라이스는 반드시 index.ts를 통해 외부로 노출할 요소만 export해야 합니다. 내부 구현 파일(예: entities/user/ui/UserCard.tsx)을 직접 참조하는 것은 금지됩니다.
 
----
+- 단방향 흐름: 상위 계층은 하위 계층을 가져올 수 있지만, 반대는 불가능합니다.
+  - features는 entities를 가져올 수 있음 (O)
+  - entities는 features를 가져올 수 없음 (X)
 
-Built with ❤️ using React Router.
+- 슬라이스 간 참조 금지: 같은 계층에 있는 슬라이스끼리는 서로를 참조할 수 없습니다. 필요한 경우 상위 계층에서 조합해야 합니다.
+
+### 라우팅 시스템
+
+해당 프로젝트는 React Router v7(7.12.0)을 프레임워크 모드로 사용합니다.
+
+```
+app/
+├── root.tsx          # 앱 전체 레이아웃 (HTML shell)
+├── routes.ts         # 라우트 설정 파일 (진입점)
+└── routes/
+    └── home.tsx      # 실제 라우트 컴포넌트
+```
