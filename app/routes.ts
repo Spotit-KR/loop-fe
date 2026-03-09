@@ -15,6 +15,6 @@ export default [
     index('routes/auth/index.tsx'),
     route('login', 'routes/auth/login.tsx'),
     route('join', 'routes/auth/join.tsx'),
-    route('todo', 'routes/todo.tsx'),
   ]),
+  route('todo', 'routes/todo.tsx'),
 ] satisfies RouteConfig;
