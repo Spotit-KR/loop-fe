@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from 'components/ui/button';
+import { Button } from 'shared/ui/components/button';
 import {
   Dialog,
   DialogClose,
@@ -8,8 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from 'components/ui/dialog';
-import { Input } from 'components/ui/input';
+} from 'shared/ui/components/dialog';
+import { Input } from 'shared/ui/components/input';
 
 interface AddTodoProps {
   onAddTodo: (title: string) => void;

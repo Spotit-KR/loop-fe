@@ -1,13 +1,28 @@
-import { useState } from "react";
-import { Send, MoreVertical, Trash2, Plus } from "lucide-react";
-import { AddTodo } from "./ui/modal/addTodoModal";
-import { Separator } from "~/components/ui/separator";
+import { useState } from 'react';
+import {
+  Send,
+  MoreVertical,
+  Trash2,
+  Plus,
+  Circle,
+  CheckCircle2,
+} from 'lucide-react';
+import { AddTodo } from 'features/todo/ui/modal/addTodoModal';
+import { Button } from 'shared/ui/components/button';
+import { Input } from 'shared/ui/components/input';
+
+interface TodoTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
 
 interface TodoItem {
   id: string;
   title: string;
   completed: number;
   total: number;
+  tasks: TodoTask[];
 }
 
 export const Todo = () => {
@@ -19,8 +34,82 @@ export const Todo = () => {
       title,
       completed: 0,
       total: 0,
+      tasks: [],
     };
     setTodos([...todos, newTodo]);
+  };
+
+  const [taskInputs, setTaskInputs] = useState<Record<string, string>>({});
+
+  const handleAddTask = (goalId: string, title: string) => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+
+    const newTask: TodoTask = {
+      id: Date.now().toString(),
+      title: trimmed,
+      completed: false,
+    };
+
+    setTodos(
+      todos.map((todo) =>
+        todo.id === goalId
+          ? {
+              ...todo,
+              tasks: [...todo.tasks, newTask],
+              total: todo.tasks.length + 1,
+            }
+          : todo
+      )
+    );
+    setTaskInputs((prev) => ({ ...prev, [goalId]: '' }));
+  };
+
+  const handleToggleTask = (goalId: string, taskId: string) => {
+    setTodos(
+      todos.map((todo) => {
+        if (todo.id !== goalId) return todo;
+        const updatedTasks = todo.tasks.map((t) =>
+          t.id === taskId ? { ...t, completed: !t.completed } : t
+        );
+        const completedCount = updatedTasks.filter((t) => t.completed).length;
+        return {
+          ...todo,
+          tasks: updatedTasks,
+          completed: completedCount,
+        };
+      })
+    );
+  };
+
+  const handleDeleteTask = (goalId: string, taskId: string) => {
+    setTodos(
+      todos.map((todo) => {
+        if (todo.id !== goalId) return todo;
+        const filtered = todo.tasks.filter((t) => t.id !== taskId);
+        const completedCount = filtered.filter((t) => t.completed).length;
+        return {
+          ...todo,
+          tasks: filtered,
+          total: filtered.length,
+          completed: completedCount,
+        };
+      })
+    );
+  };
+
+  const handleTaskInputKeyDown = (
+    goalId: string,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const value = e.currentTarget.value;
+    handleAddTask(goalId, value);
+  };
+
+  const handleTaskInputChange = (goalId: string, value: string) => {
+    setTaskInputs((prev) => ({ ...prev, [goalId]: value }));
   };
 
   const handleDeleteTodo = (id: string) => {
@@ -40,7 +129,7 @@ export const Todo = () => {
               아직 목표가 없어요
             </h2>
             <p className="text-sm text-gray-500 pb-10">
-              첫 업로드 작으시면 목표를 먼저 생성하세요
+              할 일을 적으려면 목표를 먼저 생성하세요
             </p>
           </div>
 
@@ -51,7 +140,7 @@ export const Todo = () => {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <div className="flex flex-col min-h-screen items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-2xl space-y-4">
         {todos.map((todo) => (
           <div
@@ -62,18 +151,19 @@ export const Todo = () => {
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    {todo.title}{" "}
+                    {todo.title}
                     <span className="text-sm font-normal text-gray-400">
                       {todo.completed}/{todo.total}
                     </span>
                   </h3>
-                  <button
+                  <Button
                     type="button"
-                    className="rounded-md p-1 hover:bg-gray-100"
+                    variant="ghost"
+                    size="icon-sm"
                     aria-label="더보기"
                   >
                     <MoreVertical className="h-5 w-5 text-gray-600" />
-                  </button>
+                  </Button>
                 </div>
 
                 <div className="mt-3">
@@ -87,32 +177,104 @@ export const Todo = () => {
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <p className="text-sm font-medium text-blue-500">
-                    첫 할 일을 적어보세요!
-                  </p>
+                <div className="mt-4 space-y-3">
+                  {todo.tasks.length === 0 ? (
+                    <p className="text-lg text-blue-500">
+                      첫 할 일을 적어보세요!
+                    </p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {todo.tasks.map((task) => (
+                        <li
+                          key={task.id}
+                          className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 ${
+                            task.completed ? 'bg-blue-50' : ''
+                          }`}
+                        >
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() =>
+                              handleToggleTask(todo.id, task.id)
+                            }
+                            className="flex flex-1 items-center justify-start gap-2 h-auto py-0 px-0 min-w-0"
+                            aria-label={
+                              task.completed
+                                ? `${task.title} 완료 해제`
+                                : `${task.title} 완료`
+                            }
+                            aria-pressed={task.completed}
+                          >
+                            {task.completed ? (
+                              <CheckCircle2
+                                className="h-5 w-5 shrink-0 text-main1"
+                                aria-hidden
+                              />
+                            ) : (
+                              <Circle
+                                className="h-5 w-5 shrink-0 text-gray-400"
+                                aria-hidden
+                              />
+                            )}
+                            <span
+                              className={`text-base ${
+                                task.completed
+                                  ? 'text-main1 font-medium'
+                                  : 'text-gray-900'
+                              }`}
+                            >
+                              {task.title}
+                            </span>
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => handleDeleteTask(todo.id, task.id)}
+                            aria-label={`${task.title} 삭제`}
+                          >
+                            <Trash2 className="h-4 w-4 text-gray-400" />
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
-                <Separator className="my-4" />
-
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <Plus className="h-4 w-4" />
-                    <span className="text-sm">할 일을 입력하세요</span>
+                  <div className="flex flex-1 items-center gap-2 pt-5">
+                    <Plus className="h-4 w-4 shrink-0 text-sub2" />
+                    <Input
+                      type="text"
+                      placeholder="할 일을 입력하세요"
+                      value={taskInputs[todo.id] ?? ''}
+                      onChange={(e) =>
+                        handleTaskInputChange(todo.id, e.target.value)
+                      }
+                      onKeyDown={(e) => handleTaskInputKeyDown(todo.id, e)}
+                      className="border-none text-lg text-sub2 placeholder:text-sub2 focus-visible:border focus-visible:border-gray-300 focus-visible:ring-0"
+                      aria-label="할 일 입력"
+                    />
                   </div>
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon-sm"
                     onClick={() => handleDeleteTodo(todo.id)}
-                    className="rounded-md p-1 hover:bg-gray-100"
                     aria-label="삭제"
                   >
                     <Trash2 className="h-4 w-4 text-gray-400" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
           </div>
         ))}
+        <div className="flex items-center justify-center">
+          <p className="mt-5 text-lg text-sub2">
+            다른 목표를 만들고 싶다면 목표에서 추가할 수 있어요 →
+          </p>
+        </div>
       </div>
     </div>
   );

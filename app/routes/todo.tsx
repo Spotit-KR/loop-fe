@@ -1,9 +1,9 @@
-import { Todo } from "~/features/todo/todo";
+import { Todo } from 'features/todo/todo';
 
 export function meta() {
   return [
-    { title: "Todo - Loop" },
-    { name: "description", content: "Todo page" },
+    { title: 'Todo - Loop' },
+    { name: 'description', content: 'Todo page' },
   ];
 }
 
