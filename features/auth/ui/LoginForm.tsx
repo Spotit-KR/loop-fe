@@ -1,4 +1,3 @@
-import { register } from 'module';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { Input, Button } from 'shared/ui';

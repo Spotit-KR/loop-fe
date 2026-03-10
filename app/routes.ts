@@ -11,6 +11,7 @@ export default [
     route('history', 'routes/history.tsx'),
   ]),
   route('review', 'routes/review.tsx'),
+  route('landing', 'routes/landing.tsx'),
   route('auth', 'routes/auth/layout.tsx', [
     index('routes/auth/index.tsx'),
     route('login', 'routes/auth/login.tsx'),
