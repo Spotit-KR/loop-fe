@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import { Input, Button } from 'shared/ui';
+import { useRegister } from '../model/useRegister';
 
 interface PasswordCondition {
   label: string;
@@ -20,8 +21,9 @@ function PasswordConditionItem({ label, met }: PasswordCondition) {
 
 export function JoinForm() {
   const [nickname, setNickname] = useState('');
-  const [id, setId] = useState('');
+  const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
+  const { register, loading, error } = useRegister();
 
   const conditions: PasswordCondition[] = [
     { label: '8자 이상', met: password.length >= 8 },
@@ -31,10 +33,10 @@ export function JoinForm() {
 
   const isPasswordValid = conditions.every((c) => c.met);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!isPasswordValid) return;
-    // TODO: 회원가입 API 연동
+    register({ nickname, loginId, password });
   };
 
   return (
@@ -54,8 +56,8 @@ export function JoinForm() {
           label="아이디"
           type="text"
           placeholder="아이디를 입력하세요"
-          value={id}
-          onChange={(e) => setId(e.target.value)}
+          value={loginId}
+          onChange={(e) => setLoginId(e.target.value)}
           required
         />
         <div className="flex flex-col gap-2">
@@ -81,8 +83,11 @@ export function JoinForm() {
           )}
         </div>
       </div>
-      <Button type="submit" disabled={password.length > 0 && !isPasswordValid}>
-        가입하기
+      {error && (
+        <p className="text-sm text-red text-center">{error.message}</p>
+      )}
+      <Button type="submit" disabled={loading || (password.length > 0 && !isPasswordValid)}>
+        {loading ? '처리 중...' : '가입하기'}
       </Button>
       <p className="text-center text-sm text-sub1">
         이미 계정이 있으신가요?{' '}

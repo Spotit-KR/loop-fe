@@ -1,14 +1,19 @@
+import { register } from 'module';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { Input, Button } from 'shared/ui';
+import { useLogin } from '../model/useLogin';
 
 export function LoginForm() {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
+  const { login, loading, error } = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: 로그인 API 연동
+    if (id !== undefined && password !== undefined) {
+      login({ loginId: id, password });
+    }
   };
 
   return (
