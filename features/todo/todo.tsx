@@ -1,35 +1,35 @@
 import { useState } from 'react';
-import {
-  Send,
-  MoreVertical,
-  Trash2,
-  Plus,
-  Circle,
-  CheckCircle2,
-} from 'lucide-react';
+import { Send } from 'lucide-react';
 import { AddTodo } from 'features/todo/ui/modal/addTodoModal';
-import { Button } from 'shared/ui/components/button';
-import { Input } from 'shared/ui/components/input';
-
-interface TodoTask {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
-interface TodoItem {
-  id: string;
-  title: string;
-  completed: number;
-  total: number;
-  tasks: TodoTask[];
-}
+import { TodoHeader } from 'features/todo/TodoHeader';
+import {
+  TodoItem,
+  type TodoGoal,
+  type TodoTask,
+} from 'features/todo/TodoItem';
 
 export const Todo = () => {
-  const [todos, setTodos] = useState<TodoItem[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const [todos, setTodos] = useState<TodoGoal[]>([]);
+
+  const handlePrevDate = () => {
+    setSelectedDate((prev) => {
+      const next = new Date(prev);
+      next.setDate(next.getDate() - 1);
+      return next;
+    });
+  };
+
+  const handleNextDate = () => {
+    setSelectedDate((prev) => {
+      const next = new Date(prev);
+      next.setDate(next.getDate() + 1);
+      return next;
+    });
+  };
 
   const handleAddTodo = (title: string) => {
-    const newTodo: TodoItem = {
+    const newTodo: TodoGoal = {
       id: Date.now().toString(),
       title,
       completed: 0,
@@ -166,8 +166,15 @@ export const Todo = () => {
 
   if (todos.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-4 text-center">
+      <div className="flex min-h-screen flex-col items-center bg-gray-50 p-4">
+        <div className="w-full max-w-2xl pt-8">
+          <TodoHeader
+            selectedDate={selectedDate}
+            onPrevDate={handlePrevDate}
+            onNextDate={handleNextDate}
+          />
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
             <Send className="h-8 w-8 text-gray-600" />
           </div>
@@ -188,166 +195,38 @@ export const Todo = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-2xl space-y-4">
+    <div className="flex min-h-screen flex-col items-center bg-gray-50 p-4">
+      <div className="w-full max-w-2xl pt-8">
+        <TodoHeader
+          selectedDate={selectedDate}
+          onPrevDate={handlePrevDate}
+          onNextDate={handleNextDate}
+        />
+      </div>
+      <div className="w-full max-w-2xl flex-1 space-y-4 pt-6">
         {todos.map((todo) => (
-          <div
+          <TodoItem
             key={todo.id}
-            className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-200"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {todo.title}
-                    <span className="text-sm font-normal text-gray-400">
-                      {todo.completed}/{todo.total}
-                    </span>
-                  </h3>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label="더보기"
-                  >
-                    <MoreVertical className="h-5 w-5 text-gray-600" />
-                  </Button>
-                </div>
-
-                <div className="mt-3">
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                    <div
-                      className="h-full bg-blue-500"
-                      style={{
-                        width: `${todo.total > 0 ? (todo.completed / todo.total) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-3">
-                  {todo.tasks.length === 0 ? (
-                    <p className="text-lg text-blue-500">
-                      첫 할 일을 적어보세요!
-                    </p>
-                  ) : (
-                    <ul className="space-y-3">
-                      {todo.tasks.map((task) => (
-                        <li
-                          key={task.id}
-                          className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 ${
-                            task.completed ? 'bg-blue-50' : ''
-                          }`}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleToggleTask(todo.id, task.id)}
-                            className="shrink-0 rounded p-0 hover:opacity-80"
-                            aria-label={
-                              task.completed
-                                ? `${task.title} 완료 해제`
-                                : `${task.title} 완료`
-                            }
-                            aria-pressed={task.completed}
-                          >
-                            {task.completed ? (
-                              <CheckCircle2
-                                className="h-5 w-5 shrink-0 text-main1"
-                                aria-hidden
-                              />
-                            ) : (
-                              <Circle
-                                className="h-5 w-5 shrink-0 text-gray-400"
-                                aria-hidden
-                              />
-                            )}
-                          </button>
-                          <div className="flex min-w-0 flex-1">
-                            {editingTask?.goalId === todo.id &&
-                            editingTask?.taskId === task.id ? (
-                              <Input
-                                type="text"
-                                autoFocus
-                                value={editingTaskInput}
-                                onChange={(e) =>
-                                  setEditingTaskInput(e.target.value)
-                                }
-                                onKeyDown={(e) =>
-                                  handleEditInputKeyDown(todo.id, task.id, e)
-                                }
-                                onBlur={() =>
-                                  handleUpdateTask(
-                                    todo.id,
-                                    task.id,
-                                    editingTaskInput
-                                  )
-                                }
-                                className="h-auto border-none px-0 py-0 text-base focus-visible:ring-0"
-                                aria-label="할 일 수정"
-                              />
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleStartEdit(todo.id, task.id, task.title)
-                                }
-                                className="min-w-0 flex-1 text-left"
-                              >
-                                <span
-                                  className={`text-base ${
-                                    task.completed
-                                      ? 'text-main1 font-medium'
-                                      : 'text-sub2'
-                                  }`}
-                                >
-                                  {task.title}
-                                </span>
-                              </button>
-                            )}
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => handleDeleteTask(todo.id, task.id)}
-                            aria-label={`${task.title} 삭제`}
-                          >
-                            <Trash2 className="h-4 w-4 text-gray-400" />
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-1 items-center gap-2 pt-5">
-                    <Plus className="h-4 w-4 shrink-0 text-sub2" />
-                    <Input
-                      type="text"
-                      placeholder="할 일을 입력하세요"
-                      value={taskInputs[todo.id] ?? ''}
-                      onChange={(e) =>
-                        handleTaskInputChange(todo.id, e.target.value)
-                      }
-                      onKeyDown={(e) => handleTaskInputKeyDown(todo.id, e)}
-                      className="border-none text-lg text-sub2 placeholder:text-sub2 focus-visible:border focus-visible:border-gray-300 focus-visible:ring-0"
-                      aria-label="할 일 입력"
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => handleDeleteTodo(todo.id)}
-                    aria-label="삭제"
-                  >
-                    <Trash2 className="h-4 w-4 text-gray-400" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+            todo={todo}
+            taskInput={taskInputs[todo.id] ?? ''}
+            onTaskInputChange={(value) => handleTaskInputChange(todo.id, value)}
+            onTaskInputKeyDown={(e) => handleTaskInputKeyDown(todo.id, e)}
+            editingTask={editingTask}
+            editingTaskInput={editingTaskInput}
+            onEditingTaskInputChange={setEditingTaskInput}
+            onStartEdit={(taskId, title) =>
+              handleStartEdit(todo.id, taskId, title)
+            }
+            onUpdateTask={(taskId, newTitle) =>
+              handleUpdateTask(todo.id, taskId, newTitle)
+            }
+            onEditInputKeyDown={(taskId, e) =>
+              handleEditInputKeyDown(todo.id, taskId, e)
+            }
+            onToggleTask={(taskId) => handleToggleTask(todo.id, taskId)}
+            onDeleteTask={(taskId) => handleDeleteTask(todo.id, taskId)}
+            onDeleteTodo={() => handleDeleteTodo(todo.id)}
+          />
         ))}
         <div className="flex items-center justify-center">
           <p className="mt-5 text-lg text-sub2">
