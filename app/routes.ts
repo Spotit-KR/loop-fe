@@ -10,6 +10,7 @@ export default [
     index('routes/home.tsx'),
     route('history', 'routes/history.tsx'),
     route('todo', 'routes/todo.tsx'),
+    route('goals', 'routes/goals.tsx'),
   ]),
   route('review', 'routes/review.tsx'),
   route('auth', 'routes/auth/layout.tsx', [

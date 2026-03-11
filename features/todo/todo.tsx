@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Send } from 'lucide-react';
-import { AddTodo } from 'features/todo/ui/modal/addTodoModal';
+import { Button } from 'shared/ui/components/button';
+import { AddGoalModal } from 'features/goals/ui/AddGoalModal';
 import { TodoHeader } from 'features/todo/TodoHeader';
 import {
   TodoItem,
@@ -11,6 +12,7 @@ import {
 export const Todo = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [todos, setTodos] = useState<TodoGoal[]>([]);
+  const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
 
   const handlePrevDate = () => {
     setSelectedDate((prev) => {
@@ -188,8 +190,20 @@ export const Todo = () => {
             </p>
           </div>
 
-          <AddTodo onAddTodo={handleAddTodo} />
+          <Button
+            type="button"
+            onClick={() => setIsAddGoalOpen(true)}
+            className="rounded-xl bg-main1 px-10 py-7 text-base font-medium text-white hover:bg-main1/90"
+            aria-label="첫 목표 만들기"
+          >
+            첫 목표 만들기
+          </Button>
         </div>
+        <AddGoalModal
+          open={isAddGoalOpen}
+          onOpenChange={setIsAddGoalOpen}
+          onAddGoal={handleAddTodo}
+        />
       </div>
     );
   }

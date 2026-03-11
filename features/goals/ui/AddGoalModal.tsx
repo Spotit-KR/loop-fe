@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from 'shared/ui/components/button';
 import {
   Dialog,
@@ -7,41 +7,44 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from 'shared/ui/components/dialog';
 import { Input } from 'shared/ui/components/input';
 
-interface AddTodoProps {
-  onAddTodo: (title: string) => void;
+interface AddGoalModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAddGoal: (title: string) => void;
 }
 
-export function AddTodo({ onAddTodo }: AddTodoProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function AddGoalModal({
+  open,
+  onOpenChange,
+  onAddGoal,
+}: AddGoalModalProps) {
   const [goalText, setGoalText] = useState('');
+
+  useEffect(() => {
+    if (open) {
+      setGoalText('');
+    }
+  }, [open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!goalText.trim()) return;
 
-    onAddTodo(goalText);
+    onAddGoal(goalText);
     setGoalText('');
-    setIsOpen(false);
+    onOpenChange(false);
   };
 
   const handleCancel = () => {
     setGoalText('');
-    setIsOpen(false);
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger
-        render={
-          <Button className="rounded-xl bg-blue-500 px-10 py-7 text-base font-medium text-white hover:bg-blue-600" />
-        }
-      >
-        첫 목표 만들기
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
@@ -58,7 +61,7 @@ export function AddTodo({ onAddTodo }: AddTodoProps) {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setGoalText(e.target.value)
               }
-              className="w-full h-16 px-5 py-4"
+              className="h-16 w-full px-5 py-4"
               autoFocus
             />
           </div>
@@ -69,7 +72,7 @@ export function AddTodo({ onAddTodo }: AddTodoProps) {
                   type="button"
                   variant="outline"
                   onClick={handleCancel}
-                  className="flex-1 h-12 px-6 py-3"
+                  className="h-12 flex-1 px-6 py-3"
                 />
               }
             >
@@ -77,7 +80,7 @@ export function AddTodo({ onAddTodo }: AddTodoProps) {
             </DialogClose>
             <Button
               type="submit"
-              className="flex-1 h-12 bg-blue-500 px-6 py-3 hover:bg-blue-600"
+              className="h-12 flex-1 bg-main1 px-6 py-3 hover:bg-main1/90"
               disabled={!goalText.trim()}
             >
               만들기
