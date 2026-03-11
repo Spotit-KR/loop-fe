@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Plus, Send } from 'lucide-react';
-import { Button } from 'shared/ui/components/button';
-import { GoalsHeader } from 'features/goals/GoalsHeader';
+import { Send } from 'lucide-react';
+import { GoalsHeader } from 'features/goals/ui/GoalsHeader';
 import { AddGoalModal } from 'features/goals/ui/AddGoalModal';
+import { GoalCard } from 'features/goals/ui/GoalCard';
 
 export interface Goal {
   id: string;
   title: string;
+  completed: number;
+  total: number;
 }
 
 export function Goals() {
@@ -17,6 +19,8 @@ export function Goals() {
     const newGoal: Goal = {
       id: Date.now().toString(),
       title,
+      completed: 0,
+      total: 0,
     };
     setGoals([...goals, newGoal]);
   };
@@ -64,7 +68,11 @@ export function Goals() {
         onOpenChange={setIsAddModalOpen}
         onAddGoal={handleAddGoal}
       />
-      <div className="flex-1">{/* TODO: 목표 목록 렌더링 */}</div>
+      <div className="flex max-w-2xl flex-col gap-4">
+        {goals.map((goal) => (
+          <GoalCard key={goal.id} goal={goal} />
+        ))}
+      </div>
     </div>
   );
 }
