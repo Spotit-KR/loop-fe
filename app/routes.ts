@@ -9,6 +9,7 @@ export default [
   layout('routes/layout.tsx', [
     index('routes/home.tsx'),
     route('history', 'routes/history.tsx'),
+    route('todo', 'routes/todo.tsx'),
   ]),
   route('review', 'routes/review.tsx'),
   route('auth', 'routes/auth/layout.tsx', [
@@ -16,5 +17,4 @@ export default [
     route('login', 'routes/auth/login.tsx'),
     route('join', 'routes/auth/join.tsx'),
   ]),
-  route('todo', 'routes/todo.tsx'),
 ] satisfies RouteConfig;

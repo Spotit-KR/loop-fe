@@ -3,7 +3,7 @@ import { LoopLogoIcon } from 'shared/ui';
 
 const navItems = [
   {
-    to: '/',
+    to: '/todo',
     label: '오늘의 할일',
     icon: (
       <svg
