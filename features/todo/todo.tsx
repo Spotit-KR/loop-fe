@@ -40,6 +40,11 @@ export const Todo = () => {
   };
 
   const [taskInputs, setTaskInputs] = useState<Record<string, string>>({});
+  const [editingTask, setEditingTask] = useState<{
+    goalId: string;
+    taskId: string;
+  } | null>(null);
+  const [editingTaskInput, setEditingTaskInput] = useState('');
 
   const handleAddTask = (goalId: string, title: string) => {
     const trimmed = title.trim();
@@ -104,16 +109,59 @@ export const Todo = () => {
   ) => {
     if (e.key !== 'Enter') return;
     e.preventDefault();
-    const value = e.currentTarget.value;
+    const value = taskInputs[goalId] ?? '';
     handleAddTask(goalId, value);
   };
-
   const handleTaskInputChange = (goalId: string, value: string) => {
     setTaskInputs((prev) => ({ ...prev, [goalId]: value }));
   };
 
   const handleDeleteTodo = (id: string) => {
     setTodos(todos.filter((todo) => todo.id !== id));
+  };
+
+  const handleStartEdit = (goalId: string, taskId: string, title: string) => {
+    setEditingTask({ goalId, taskId });
+    setEditingTaskInput(title);
+  };
+
+  const handleUpdateTask = (
+    goalId: string,
+    taskId: string,
+    newTitle: string
+  ) => {
+    const trimmed = newTitle.trim();
+    if (!trimmed) {
+      setEditingTask(null);
+      return;
+    }
+
+    setTodos(
+      todos.map((todo) => {
+        if (todo.id !== goalId) return todo;
+        return {
+          ...todo,
+          tasks: todo.tasks.map((t) =>
+            t.id === taskId ? { ...t, title: trimmed } : t
+          ),
+        };
+      })
+    );
+    setEditingTask(null);
+  };
+
+  const handleEditInputKeyDown = (
+    goalId: string,
+    taskId: string,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleUpdateTask(goalId, taskId, editingTaskInput);
+    }
+    if (e.key === 'Escape') {
+      setEditingTask(null);
+    }
   };
 
   if (todos.length === 0) {
@@ -191,13 +239,10 @@ export const Todo = () => {
                             task.completed ? 'bg-blue-50' : ''
                           }`}
                         >
-                          <Button
+                          <button
                             type="button"
-                            variant="ghost"
-                            onClick={() =>
-                              handleToggleTask(todo.id, task.id)
-                            }
-                            className="flex flex-1 items-center justify-start gap-2 h-auto py-0 px-0 min-w-0"
+                            onClick={() => handleToggleTask(todo.id, task.id)}
+                            className="shrink-0 rounded p-0 hover:opacity-80"
                             aria-label={
                               task.completed
                                 ? `${task.title} 완료 해제`
@@ -216,16 +261,50 @@ export const Todo = () => {
                                 aria-hidden
                               />
                             )}
-                            <span
-                              className={`text-base ${
-                                task.completed
-                                  ? 'text-main1 font-medium'
-                                  : 'text-gray-900'
-                              }`}
-                            >
-                              {task.title}
-                            </span>
-                          </Button>
+                          </button>
+                          <div className="flex min-w-0 flex-1">
+                            {editingTask?.goalId === todo.id &&
+                            editingTask?.taskId === task.id ? (
+                              <Input
+                                type="text"
+                                autoFocus
+                                value={editingTaskInput}
+                                onChange={(e) =>
+                                  setEditingTaskInput(e.target.value)
+                                }
+                                onKeyDown={(e) =>
+                                  handleEditInputKeyDown(todo.id, task.id, e)
+                                }
+                                onBlur={() =>
+                                  handleUpdateTask(
+                                    todo.id,
+                                    task.id,
+                                    editingTaskInput
+                                  )
+                                }
+                                className="h-auto border-none px-0 py-0 text-base focus-visible:ring-0"
+                                aria-label="할 일 수정"
+                              />
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleStartEdit(todo.id, task.id, task.title)
+                                }
+                                className="min-w-0 flex-1 text-left"
+                              >
+                                <span
+                                  className={`text-base ${
+                                    task.completed
+                                      ? 'text-main1 font-medium'
+                                      : 'text-sub2'
+                                  }`}
+                                >
+                                  {task.title}
+                                </span>
+                              </button>
+                            )}
+                          </div>
                           <Button
                             type="button"
                             variant="ghost"
