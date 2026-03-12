@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
 import { Modal } from 'shared/ui';
 import { formatMonthDay } from 'shared/utils';
+import { useTask } from 'features/task/model/useTask';
 
 interface ReviewStartModalProps {
   onClose: () => void;
@@ -9,6 +10,12 @@ interface ReviewStartModalProps {
 
 export function ReviewStartModal({ onClose, date }: ReviewStartModalProps) {
   const navigate = useNavigate();
+
+  const { myTasks } = useTask({ startDate: date, endDate: date });
+  const completed = myTasks.filter((t) => t.status === 'DONE').length;
+  const incomplete = myTasks.filter((t) => t.status === 'TODO').length;
+  const total = myTasks.length;
+  const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   const displayDate = formatMonthDay(date);
 
@@ -35,22 +42,24 @@ export function ReviewStartModal({ onClose, date }: ReviewStartModalProps) {
         {/* 통계 카드 */}
         <div className="flex gap-4">
           <div className="flex-1 h-40.25 rounded-[10px] border border-green bg-green/15 flex flex-col items-center justify-center gap-2">
-            <span className="text-[35px] font-semibold text-green">80%</span>
+            <span className="text-[35px] font-semibold text-green">{rate}%</span>
             <span className="text-[20px] text-sub2">달성률</span>
           </div>
           <div className="flex-1 h-40.25 rounded-[10px] border border-main1 bg-main1/10 flex flex-col items-center justify-center gap-2">
-            <span className="text-[35px] font-semibold text-main1">8</span>
+            <span className="text-[35px] font-semibold text-main1">{completed}</span>
             <span className="text-[20px] text-sub2">완료</span>
           </div>
           <div className="flex-1 h-40.25 rounded-[10px] border border-red bg-red/15 flex flex-col items-center justify-center gap-2">
-            <span className="text-[35px] font-semibold text-red">2</span>
+            <span className="text-[35px] font-semibold text-red">{incomplete}</span>
             <span className="text-[20px] text-sub2">미완료</span>
           </div>
         </div>
 
         {/* 안내 문구 */}
         <p className="text-[15px] text-sub1 text-center">
-          완료하지 않은 일이 남았습니다. 그래도 회고로 넘어갈까요?
+          {rate === 100
+            ? '오늘의 일을 모두 완료하셨네요! 수고했어요!!'
+            : '완료하지 않은 일이 남았습니다. 그래도 회고로 넘어갈까요?'}
         </p>
 
         {/* CTA */}
