@@ -14,17 +14,17 @@ interface LoginResponse {
 
 export function useLogin() {
   const navigate = useNavigate();
-  const [mutate, { loading, error }] = useMutation<LoginResponse, LoginInput>(
-    LOGIN_MUTATION,
-    {
-      onCompleted(data) {
-        tokenStorage.set(data.login.accessToken);
-        navigate('/');
-      },
-    }
-  );
+  const [mutate, { loading, error }] = useMutation<
+    LoginResponse,
+    { input: LoginInput }
+  >(LOGIN_MUTATION, {
+    onCompleted(data) {
+      tokenStorage.set(data.login.accessToken);
+      navigate('/');
+    },
+  });
 
-  const login = (input: LoginInput) => mutate({ variables: { ...input } });
+  const login = (input: LoginInput) => mutate({ variables: { input } });
 
   return { login, loading, error };
 }

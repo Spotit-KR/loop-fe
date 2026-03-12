@@ -17,7 +17,7 @@ export function useRegister() {
   const navigate = useNavigate();
   const [mutate, { loading, error }] = useMutation<
     RegisterResponse,
-    RegisterInput
+    { input: RegisterInput }
   >(REGISTER_MUTATION, {
     onCompleted(data) {
       tokenStorage.set(data.register.accessToken);
@@ -26,7 +26,7 @@ export function useRegister() {
   });
 
   const register = (input: RegisterInput) =>
-    mutate({ variables: { ...input } });
+    mutate({ variables: { input } });
 
   return { register, loading, error };
 }

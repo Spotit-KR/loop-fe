@@ -8,6 +8,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [date, setDate] = useState(new Date());
 
   return (
     <div className="flex flex-col h-full">
@@ -15,7 +16,7 @@ export default function Home() {
       <div className="p-8 flex justify-center">
         <button
           onClick={() => setIsModalOpen(true)}
-          className="px-8 py-4 bg-main1 text-white rounded-[10px] text-[20px] font-medium cursor-pointer"
+          className="w-full max-w-215 px-8 py-4 bg-main1 text-white rounded-[10px] text-[20px] font-medium cursor-pointer"
         >
           오늘 하루 회고로 마무리하기
         </button>
@@ -23,7 +24,7 @@ export default function Home() {
       {isModalOpen && (
         <ReviewStartModal
           onClose={() => setIsModalOpen(false)}
-          date="2026-02-20"
+          date={date.toISOString().split('T')[0]}
         />
       )}
     </div>

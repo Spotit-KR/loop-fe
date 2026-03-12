@@ -18,7 +18,7 @@ export function ReviewStartModal({ onClose, date }: ReviewStartModalProps) {
 
   return (
     <Modal onClose={onClose}>
-      <div className="bg-white rounded-[20px] w-[570px] px-[26px] py-[34px] flex flex-col gap-6">
+      <div className="bg-white rounded-[20px] w-142.5 px-6.5 py-8.5 flex flex-col gap-6">
         {/* 헤더 */}
         <div className="flex justify-between items-center">
           <h2 className="text-[25px] font-bold text-main2">
@@ -34,15 +34,15 @@ export function ReviewStartModal({ onClose, date }: ReviewStartModalProps) {
 
         {/* 통계 카드 */}
         <div className="flex gap-4">
-          <div className="flex-1 h-[161px] rounded-[10px] border border-green bg-green/15 flex flex-col items-center justify-center gap-2">
+          <div className="flex-1 h-40.25 rounded-[10px] border border-green bg-green/15 flex flex-col items-center justify-center gap-2">
             <span className="text-[35px] font-semibold text-green">80%</span>
             <span className="text-[20px] text-sub2">달성률</span>
           </div>
-          <div className="flex-1 h-[161px] rounded-[10px] border border-main1 bg-main1/10 flex flex-col items-center justify-center gap-2">
+          <div className="flex-1 h-40.25 rounded-[10px] border border-main1 bg-main1/10 flex flex-col items-center justify-center gap-2">
             <span className="text-[35px] font-semibold text-main1">8</span>
             <span className="text-[20px] text-sub2">완료</span>
           </div>
-          <div className="flex-1 h-[161px] rounded-[10px] border border-red bg-red/15 flex flex-col items-center justify-center gap-2">
+          <div className="flex-1 h-40.25 rounded-[10px] border border-red bg-red/15 flex flex-col items-center justify-center gap-2">
             <span className="text-[35px] font-semibold text-red">2</span>
             <span className="text-[20px] text-sub2">미완료</span>
           </div>
