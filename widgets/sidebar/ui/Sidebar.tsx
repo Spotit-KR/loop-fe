@@ -1,5 +1,7 @@
+import { useRef, useState } from 'react';
 import { NavLink } from 'react-router';
-import { LoopLogoIcon } from 'shared/ui';
+import { LoopLogoIcon, UserIcon } from 'shared/ui';
+import { useMe, useLogout } from 'features/auth';
 
 const navItems = [
   {
@@ -50,13 +52,18 @@ const navItems = [
 ];
 
 export function Sidebar() {
+  const { nickname, loginId } = useMe();
+  const { logout } = useLogout();
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
   return (
-    <aside className="w-[288px] shrink-0 h-screen bg-white border-r border-sub3">
+    <aside className="w-[288px] shrink-0 h-screen bg-white border-r border-sub3 flex flex-col">
       <div className="flex items-center gap-3 px-7.25 h-33">
         <LoopLogoIcon size={40} />
         <span className="text-2xl font-semibold text-main1">Loop</span>
       </div>
-      <nav>
+      <nav className="flex-1">
         {navItems.map(({ to, label, icon }) => (
           <NavLink
             key={to}
@@ -77,6 +84,39 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
+
+      <div className="relative">
+        {isPopupOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-10"
+              onClick={() => setIsPopupOpen(false)}
+            />
+            <div className="absolute bottom-full left-0 right-0 z-20 mx-4 mb-2 bg-white rounded-[10px] shadow-[0_4px_20px_rgba(0,0,0,0.12)] border border-sub3 px-5 py-4 flex items-center justify-between">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[16px] font-semibold text-main2">{nickname}</span>
+                <span className="text-[13px] text-sub1">{loginId}</span>
+              </div>
+              <button
+                onClick={logout}
+                className="text-[14px] text-sub1 hover:text-red cursor-pointer"
+              >
+                로그아웃하기
+              </button>
+            </div>
+          </>
+        )}
+        <button
+          ref={buttonRef}
+          onClick={() => setIsPopupOpen((prev) => !prev)}
+          className={`w-full flex items-center gap-[29px] h-[62px] px-[29px] transition-colors cursor-pointer ${
+            isPopupOpen ? 'bg-main1/20 text-main1' : 'text-main2 hover:bg-main1/10'
+          }`}
+        >
+          <UserIcon className="w-[25px] h-[25px] shrink-0" />
+          <span className="text-[20px] font-medium">{nickname}님</span>
+        </button>
+      </div>
     </aside>
   );
 }
