@@ -9,8 +9,10 @@ export default [
   layout('routes/layout.tsx', [
     index('routes/home.tsx'),
     route('history', 'routes/history.tsx'),
+    route('mypage', 'routes/mypage.tsx'),
   ]),
   route('review', 'routes/review.tsx'),
+  route('landing', 'routes/landing.tsx'),
   route('auth', 'routes/auth/layout.tsx', [
     index('routes/auth/index.tsx'),
     route('login', 'routes/auth/login.tsx'),

@@ -8,4 +8,5 @@ export {
   ReviewCompleteIcon,
   LoopLogoIcon,
   HistoryIcon,
+  ReviewBookIcon,
 } from './icons';
