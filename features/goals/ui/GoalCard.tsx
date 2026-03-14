@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 
 export interface GoalCardProps {
@@ -10,11 +11,28 @@ export interface GoalCardProps {
 }
 
 export function GoalCard({ goal }: GoalCardProps) {
+  const navigate = useNavigate();
   const progressPercent =
     goal.total > 0 ? (goal.completed / goal.total) * 100 : 0;
 
+  const handleClick = () => {
+    navigate(`/goals/${goal.id}`);
+  };
+
   return (
-    <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+      className="cursor-pointer rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-main1"
+      aria-label={`${goal.title} 목표 상세 보기`}
+    >
       <div className="flex items-center gap-4">
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold text-main2">{goal.title}</h3>

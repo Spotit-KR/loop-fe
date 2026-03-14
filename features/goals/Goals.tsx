@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Send } from 'lucide-react';
+import { Plus, Send } from 'lucide-react';
+import { Button } from 'shared/ui/components/button';
+import { useGoals } from 'shared/context/GoalsContext';
 import { GoalsHeader } from 'features/goals/ui/GoalsHeader';
 import { AddGoalModal } from 'features/goals/ui/AddGoalModal';
 import { GoalCard } from 'features/goals/ui/GoalCard';
@@ -12,18 +14,8 @@ export interface Goal {
 }
 
 export function Goals() {
-  const [goals, setGoals] = useState<Goal[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  const handleAddGoal = (title: string) => {
-    const newGoal: Goal = {
-      id: Date.now().toString(),
-      title,
-      completed: 0,
-      total: 0,
-    };
-    setGoals([...goals, newGoal]);
-  };
+  const { goals, addGoal } = useGoals();
 
   const handleAddGoalClick = () => {
     setIsAddModalOpen(true);
@@ -38,7 +30,7 @@ export function Goals() {
         <AddGoalModal
           open={isAddModalOpen}
           onOpenChange={setIsAddModalOpen}
-          onAddGoal={handleAddGoal}
+          onAddGoal={addGoal}
         />
         <div className="flex flex-1 flex-col items-center justify-center text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-200">
@@ -66,7 +58,7 @@ export function Goals() {
       <AddGoalModal
         open={isAddModalOpen}
         onOpenChange={setIsAddModalOpen}
-        onAddGoal={handleAddGoal}
+        onAddGoal={addGoal}
       />
       <div className="flex max-w-2xl flex-col gap-4">
         {goals.map((goal) => (
