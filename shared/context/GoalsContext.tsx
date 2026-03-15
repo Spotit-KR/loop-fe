@@ -92,15 +92,11 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
       const trimmed = title.trim();
       if (!trimmed) return;
 
-      try {
-        await createTaskMutation({
-          goalId,
-          title: trimmed,
-          taskDate,
-        });
-      } catch {
-        // 에러는 useCreateTask에서 처리 가능
-      }
+      await createTaskMutation({
+        goalId,
+        title: trimmed,
+        date: taskDate,
+      });
     },
     [createTaskMutation]
   );

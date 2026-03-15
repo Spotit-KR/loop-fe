@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from 'shared/ui/components/button';
+import { Input } from 'shared/ui/components/input';
 import { useGoals } from 'shared/context/GoalsContext';
+import { useMyGoals } from 'features/goals/model/useMyGoals';
 import { useTask } from 'features/task/model/useTask';
 import { formatDateToYYYYMMDD } from 'shared/utils';
 import { AddGoalModal } from 'features/goals/ui/AddGoalModal';
@@ -19,8 +21,14 @@ export const Todo = () => {
   const { myReviews } = useMyReviews({ date: dateString });
   const todayReview = myReviews[0] ?? null;
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
+
+  // History 페이지(useMyReviews)와 동일하게 페이지에서 직접 myGoals 쿼리 호출
   const {
-    goals,
+    myGoals,
+    loading: goalsLoading,
+    refetch: refetchGoals,
+  } = useMyGoals();
+  const {
     addGoal: handleAddTodo,
     addTask: handleAddTask,
     toggleTask: handleToggleTask,
@@ -29,15 +37,37 @@ export const Todo = () => {
     deleteGoal: handleDeleteTodo,
   } = useGoals();
 
+  const goals = useMemo(
+    () =>
+      myGoals.map((g) => ({
+        id: String(g.id),
+        title: g.title,
+        completedTaskCount: g.completedTaskCount,
+        totalTaskCount: g.totalTaskCount,
+        achievementRate: g.achievementRate,
+      })),
+    [myGoals]
+  );
+
   const dateStr = formatDateToYYYYMMDD(selectedDate);
   const { myTasks, refetch: refetchTasks } = useTask({
     startDate: dateStr,
     endDate: dateStr,
   });
 
-  const todos = useMemo(() => {
-    return goals.map((goal) => {
-      const goalTasks = myTasks.filter((t) => t.goalId === goal.id);
+  // 해당 날짜에 task가 있는 goal만 표시. task가 없으면 전체 goal 표시(할 일 추가 가능)
+  const { todos, hiddenGoalIds } = useMemo(() => {
+    const goalsWithTasksOnDate = goals.filter((goal) =>
+      myTasks.some((t) => String(t.goalId) === goal.id)
+    );
+    const goalsToShow =
+      goalsWithTasksOnDate.length > 0 ? goalsWithTasksOnDate : goals;
+    const hiddenGoalIds = goals
+      .filter((g) => !goalsToShow.some((s) => s.id === g.id))
+      .map((g) => g.id);
+
+    const todosResult = goalsToShow.map((goal) => {
+      const goalTasks = myTasks.filter((t) => String(t.goalId) === goal.id);
       const completedCount = goalTasks.filter(
         (t) => t.status === 'DONE'
       ).length;
@@ -53,7 +83,14 @@ export const Todo = () => {
         })),
       };
     });
+
+    return { todos: todosResult, hiddenGoalIds };
   }, [goals, myTasks]);
+
+  const hiddenGoals = useMemo(
+    () => goals.filter((g) => hiddenGoalIds.includes(g.id)),
+    [goals, hiddenGoalIds]
+  );
 
   const handlePrevDate = () => {
     setSelectedDate((prev) => {
@@ -72,6 +109,8 @@ export const Todo = () => {
   };
 
   const [taskInputs, setTaskInputs] = useState<Record<string, string>>({});
+  const [isAddOtherGoalsOpen, setIsAddOtherGoalsOpen] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [editingTask, setEditingTask] = useState<{
     goalId: string;
     taskId: string;
@@ -79,9 +118,19 @@ export const Todo = () => {
   const [editingTaskInput, setEditingTaskInput] = useState('');
 
   const handleAddTaskWithReset = async (goalId: string, title: string) => {
-    await handleAddTask(goalId, title, dateStr);
-    refetchTasks();
-    setTaskInputs((prev) => ({ ...prev, [goalId]: '' }));
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    if (isSubmittingRef.current) return;
+
+    isSubmittingRef.current = true;
+    try {
+      await handleAddTask(goalId, trimmed, dateStr);
+      refetchTasks();
+      refetchGoals();
+      setTaskInputs((prev) => ({ ...prev, [goalId]: '' }));
+    } finally {
+      isSubmittingRef.current = false;
+    }
   };
 
   const handleToggleTaskWrapper = (goalId: string, taskId: string) => {
@@ -99,6 +148,7 @@ export const Todo = () => {
   ) => {
     if (e.key !== 'Enter') return;
     e.preventDefault();
+    e.stopPropagation();
     const value = taskInputs[goalId] ?? '';
     handleAddTaskWithReset(goalId, value);
   };
@@ -143,7 +193,24 @@ export const Todo = () => {
     }
   };
 
-  if (todos.length === 0) {
+  if (goalsLoading) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+        <div className="w-full max-w-2xl pt-8">
+          <TodoHeader
+            selectedDate={selectedDate}
+            onPrevDate={handlePrevDate}
+            onNextDate={handleNextDate}
+          />
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center">
+          <p className="text-sub2">목표를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (goals.length === 0) {
     return (
       <div className="flex min-h-screen flex-col items-center bg-gray-50 p-4">
         <div className="w-full max-w-2xl pt-8">
@@ -179,7 +246,10 @@ export const Todo = () => {
         <AddGoalModal
           open={isAddGoalOpen}
           onOpenChange={setIsAddGoalOpen}
-          onAddGoal={handleAddTodo}
+          onAddGoal={async (title) => {
+            await handleAddTodo(title);
+            refetchGoals();
+          }}
         />
       </div>
     );
@@ -219,6 +289,51 @@ export const Todo = () => {
             onDeleteTodo={() => handleDeleteTodoWrapper(todo.id)}
           />
         ))}
+        {hiddenGoals.length > 0 && (
+          <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
+            <button
+              type="button"
+              onClick={() => setIsAddOtherGoalsOpen((prev) => !prev)}
+              className="flex w-full items-center justify-between text-left text-base text-sub2 hover:text-main2"
+              aria-expanded={isAddOtherGoalsOpen}
+              aria-label={
+                isAddOtherGoalsOpen
+                  ? '다른 목표에 할 일 추가 접기'
+                  : '다른 목표에 할 일 추가 펼치기'
+              }
+            >
+              <span>다른 목표에 할 일 추가</span>
+              <span className="text-xl" aria-hidden>
+                {isAddOtherGoalsOpen ? '−' : '+'}
+              </span>
+            </button>
+            {isAddOtherGoalsOpen && (
+              <div className="mt-4 space-y-3">
+                {hiddenGoals.map((goal) => (
+                  <div
+                    key={goal.id}
+                    className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"
+                  >
+                    <span className="shrink-0 text-sm text-sub2">
+                      {goal.title}
+                    </span>
+                    <Input
+                      type="text"
+                      placeholder="할 일 입력"
+                      value={taskInputs[goal.id] ?? ''}
+                      onChange={(e) =>
+                        handleTaskInputChange(goal.id, e.target.value)
+                      }
+                      onKeyDown={(e) => handleTaskInputKeyDown(goal.id, e)}
+                      className="flex-1 border-none text-base focus-visible:ring-0"
+                      aria-label={`${goal.title}에 할 일 추가`}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <div className="flex items-center justify-center">
           <p className="mt-5 text-lg text-sub2">
             다른 목표를 만들고 싶다면 목표에서 추가할 수 있어요 →

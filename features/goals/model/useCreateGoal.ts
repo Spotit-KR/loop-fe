@@ -1,5 +1,6 @@
 import { useMutation } from '@apollo/client/react';
 import { CREATE_GOAL_MUTATION } from '../api/createGoal.mutation';
+import { MY_GOALS_QUERY } from '../api/myGoals.query';
 
 interface CreateGoalInput {
   title: string;
@@ -26,7 +27,10 @@ export function useCreateGoal() {
   >(CREATE_GOAL_MUTATION);
 
   const createGoal = (input: CreateGoalInput) =>
-    mutate({ variables: { input } });
+    mutate({
+      variables: { input },
+      refetchQueries: [{ query: MY_GOALS_QUERY }],
+    });
 
   return { createGoal, loading, error };
 }
