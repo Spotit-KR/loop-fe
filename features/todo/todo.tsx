@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from 'shared/ui/components/button';
 import { useGoals } from 'shared/context/GoalsContext';
+import { useTask } from 'features/task/model/useTask';
+import { formatDateToYYYYMMDD } from 'shared/utils';
 import { AddGoalModal } from 'features/goals/ui/AddGoalModal';
 import { TodoHeader } from 'features/todo/TodoHeader';
 import { TodoItem } from 'features/todo/TodoItem';
@@ -10,7 +12,7 @@ export const Todo = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
   const {
-    goals: todos,
+    goals,
     addGoal: handleAddTodo,
     addTask: handleAddTask,
     toggleTask: handleToggleTask,
@@ -18,6 +20,30 @@ export const Todo = () => {
     updateTask: handleUpdateTask,
     deleteGoal: handleDeleteTodo,
   } = useGoals();
+
+  const dateStr = formatDateToYYYYMMDD(selectedDate);
+  const { myTasks, refetch: refetchTasks } = useTask({
+    startDate: dateStr,
+    endDate: dateStr,
+  });
+
+  const todos = useMemo(() => {
+    return goals.map((goal) => {
+      const goalTasks = myTasks.filter((t) => t.goalId === goal.id);
+      const completedCount = goalTasks.filter((t) => t.status === 'DONE').length;
+      return {
+        id: goal.id,
+        title: goal.title,
+        completed: completedCount,
+        total: goalTasks.length,
+        tasks: goalTasks.map((t) => ({
+          id: t.id,
+          title: t.title,
+          completed: t.status === 'DONE',
+        })),
+      };
+    });
+  }, [goals, myTasks]);
 
   const handlePrevDate = () => {
     setSelectedDate((prev) => {
@@ -42,8 +68,9 @@ export const Todo = () => {
   } | null>(null);
   const [editingTaskInput, setEditingTaskInput] = useState('');
 
-  const handleAddTaskWithReset = (goalId: string, title: string) => {
-    handleAddTask(goalId, title);
+  const handleAddTaskWithReset = async (goalId: string, title: string) => {
+    await handleAddTask(goalId, title, dateStr);
+    refetchTasks();
     setTaskInputs((prev) => ({ ...prev, [goalId]: '' }));
   };
 
@@ -51,8 +78,12 @@ export const Todo = () => {
     handleToggleTask(goalId, taskId);
   };
 
-  const handleDeleteTaskWrapper = (goalId: string, taskId: string) => {
-    handleDeleteTask(goalId, taskId);
+  const handleDeleteTaskWrapper = async (
+    goalId: string,
+    taskId: string
+  ) => {
+    await handleDeleteTask(goalId, taskId);
+    refetchTasks();
   };
 
   const handleTaskInputKeyDown = (

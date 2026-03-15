@@ -1,10 +1,10 @@
 type TaskStatus = 'TODO' | 'DONE';
 
 interface Task {
-  id: number;
+  id: string;
   title: string;
   status: TaskStatus;
-  goalId: number;
+  goalId: string;
   taskDate: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -17,10 +17,10 @@ interface TaskFilter {
 }
 
 interface TaskDTO {
-  id: number;
+  id: string;
   title: string;
   status: TaskStatus;
-  goalId: number;
+  goalId: string;
   taskDate: string;
   createdAt: string;
   updatedAt: string;

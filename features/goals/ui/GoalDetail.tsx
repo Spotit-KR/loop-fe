@@ -2,6 +2,7 @@ import { MoreVertical } from 'lucide-react';
 import { Button } from 'shared/ui/components/button';
 import { BackArrowIcon } from 'shared/ui';
 import { useGoals } from 'shared/context/GoalsContext';
+import { useTask } from 'features/task/model/useTask';
 
 interface GoalDetailProps {
   goalId: string;
@@ -10,14 +11,14 @@ interface GoalDetailProps {
 
 export function GoalDetail({ goalId, onBack }: GoalDetailProps) {
   const { goals } = useGoals();
+  const { myTasks } = useTask({ goalId });
   const goal = goals.find((g) => g.id === goalId);
 
   if (!goal) {
     return null;
   }
 
-  const achievementRate =
-    goal.total > 0 ? Math.round((goal.completed / goal.total) * 100) : 0;
+  const achievementRate = goal.achievementRate;
 
   return (
     <div className="flex min-h-full flex-col bg-gray-50 p-10">
@@ -49,12 +50,14 @@ export function GoalDetail({ goalId, onBack }: GoalDetailProps) {
           <div className="flex items-center justify-around gap-4">
             <div className="flex flex-col items-center">
               <span className="text-3xl font-bold text-main2">
-                {goal.completed}
+                {goal.completedTaskCount}
               </span>
               <span className="mt-1 text-sm text-sub2">완료한 액션</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="text-3xl font-bold text-main2">{goal.total}</span>
+              <span className="text-3xl font-bold text-main2">
+                {goal.totalTaskCount}
+              </span>
               <span className="mt-1 text-sm text-sub2">총 액션</span>
             </div>
           </div>
@@ -64,22 +67,24 @@ export function GoalDetail({ goalId, onBack }: GoalDetailProps) {
           </p>
         </div>
 
-        {goal.tasks.length === 0 ? (
+        {myTasks.length === 0 ? (
           <p className="text-center text-sm text-sub2">
             아직 할 일이 없어요
           </p>
         ) : (
           <ul className="space-y-2">
-            {goal.tasks.map((task) => (
+            {myTasks.map((task) => (
               <li
                 key={task.id}
                 className={`rounded-lg px-4 py-3 ${
-                  task.completed ? 'bg-main1/10' : 'bg-white'
+                  task.status === 'DONE' ? 'bg-main1/10' : 'bg-white'
                 } ring-1 ring-gray-200`}
               >
                 <span
                   className={
-                    task.completed ? 'text-sub2 line-through' : 'text-main2'
+                    task.status === 'DONE'
+                      ? 'text-sub2 line-through'
+                      : 'text-main2'
                   }
                 >
                   {task.title}

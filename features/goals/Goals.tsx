@@ -9,17 +9,34 @@ import { GoalCard } from 'features/goals/ui/GoalCard';
 export interface Goal {
   id: string;
   title: string;
-  completed: number;
-  total: number;
+  completedTaskCount: number;
+  totalTaskCount: number;
+  achievementRate?: number;
 }
 
 export function Goals() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const { goals, addGoal } = useGoals();
+  const { goals, addGoal, loading, error } = useGoals();
 
   const handleAddGoalClick = () => {
     setIsAddModalOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-full flex-col items-center justify-center bg-gray-50 p-10">
+        <p className="text-sub2">로딩 중...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-full flex-col items-center justify-center bg-gray-50 p-10">
+        <p className="text-red-500">목표를 불러오는 중 오류가 발생했습니다.</p>
+      </div>
+    );
+  }
 
   if (goals.length === 0) {
     return (

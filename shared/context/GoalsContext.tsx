@@ -1,10 +1,14 @@
 import {
   createContext,
   useContext,
-  useState,
   useCallback,
   type ReactNode,
 } from 'react';
+import { useMyGoals } from 'features/goals/model/useMyGoals';
+import { useCreateGoal } from 'features/goals/model/useCreateGoal';
+import { useUpdateGoal } from 'features/goals/model/useUpdateGoal';
+import { useCreateTask } from 'features/task/model/useCreateTask';
+import { useDeleteTask } from 'features/task/model/useDeleteTask';
 
 export interface TodoTask {
   id: string;
@@ -15,15 +19,20 @@ export interface TodoTask {
 export interface TodoGoal {
   id: string;
   title: string;
-  completed: number;
-  total: number;
+  completedTaskCount: number;
+  totalTaskCount: number;
+  achievementRate: number;
   tasks: TodoTask[];
 }
 
 interface GoalsContextValue {
   goals: TodoGoal[];
+  loading: boolean;
+  error: Error | undefined;
+  refetch: () => void;
   addGoal: (title: string) => void;
-  addTask: (goalId: string, title: string) => void;
+  updateGoal: (goalId: string, title: string) => void;
+  addTask: (goalId: string, title: string, taskDate: string) => void;
   toggleTask: (goalId: string, taskId: string) => void;
   deleteTask: (goalId: string, taskId: string) => void;
   updateTask: (goalId: string, taskId: string, newTitle: string) => void;
@@ -33,102 +42,111 @@ interface GoalsContextValue {
 const GoalsContext = createContext<GoalsContextValue | null>(null);
 
 export function GoalsProvider({ children }: { children: ReactNode }) {
-  const [goals, setGoals] = useState<TodoGoal[]>([]);
+  const { myGoals, loading, error, refetch } = useMyGoals();
+  const { createGoal: createGoalMutation } = useCreateGoal();
+  const { updateGoal: updateGoalMutation } = useUpdateGoal();
+  const { createTask: createTaskMutation } = useCreateTask();
+  const { deleteTask: deleteTaskMutation } = useDeleteTask();
 
-  const addGoal = useCallback((title: string) => {
-    const newGoal: TodoGoal = {
-      id: Date.now().toString(),
-      title,
-      completed: 0,
-      total: 0,
-      tasks: [],
-    };
-    setGoals((prev) => [...prev, newGoal]);
-  }, []);
+  const goals: TodoGoal[] = myGoals.map((g) => ({
+    id: String(g.id),
+    title: g.title,
+    completedTaskCount: g.completedTaskCount,
+    totalTaskCount: g.totalTaskCount,
+    achievementRate: g.achievementRate,
+    tasks: [],
+  }));
 
-  const addTask = useCallback((goalId: string, title: string) => {
-    const trimmed = title.trim();
-    if (!trimmed) return;
-
-    const newTask: TodoTask = {
-      id: Date.now().toString(),
-      title: trimmed,
-      completed: false,
-    };
-
-    setGoals((prev) =>
-      prev.map((goal) =>
-        goal.id === goalId
-          ? {
-              ...goal,
-              tasks: [...goal.tasks, newTask],
-              total: goal.tasks.length + 1,
-            }
-          : goal
-      )
-    );
-  }, []);
-
-  const toggleTask = useCallback((goalId: string, taskId: string) => {
-    setGoals((prev) =>
-      prev.map((goal) => {
-        if (goal.id !== goalId) return goal;
-        const updatedTasks = goal.tasks.map((t) =>
-          t.id === taskId ? { ...t, completed: !t.completed } : t
-        );
-        const completedCount = updatedTasks.filter((t) => t.completed).length;
-        return {
-          ...goal,
-          tasks: updatedTasks,
-          completed: completedCount,
-        };
-      })
-    );
-  }, []);
-
-  const deleteTask = useCallback((goalId: string, taskId: string) => {
-    setGoals((prev) =>
-      prev.map((goal) => {
-        if (goal.id !== goalId) return goal;
-        const filtered = goal.tasks.filter((t) => t.id !== taskId);
-        const completedCount = filtered.filter((t) => t.completed).length;
-        return {
-          ...goal,
-          tasks: filtered,
-          total: filtered.length,
-          completed: completedCount,
-        };
-      })
-    );
-  }, []);
-
-  const updateTask = useCallback(
-    (goalId: string, taskId: string, newTitle: string) => {
-      const trimmed = newTitle.trim();
+  const addGoal = useCallback(
+    async (title: string) => {
+      const trimmed = title.trim();
       if (!trimmed) return;
 
-      setGoals((prev) =>
-        prev.map((goal) => {
-          if (goal.id !== goalId) return goal;
-          return {
-            ...goal,
-            tasks: goal.tasks.map((t) =>
-              t.id === taskId ? { ...t, title: trimmed } : t
-            ),
-          };
-        })
-      );
+      try {
+        await createGoalMutation({ title: trimmed });
+        await refetch();
+      } catch {
+        // 에러는 useCreateGoal에서 처리 가능
+      }
     },
-    []
+    [createGoalMutation, refetch]
   );
 
-  const deleteGoal = useCallback((goalId: string) => {
-    setGoals((prev) => prev.filter((goal) => goal.id !== goalId));
-  }, []);
+  const updateGoal = useCallback(
+    async (goalId: string, title: string) => {
+      const trimmed = title.trim();
+      if (!trimmed) return;
+
+      try {
+        await updateGoalMutation({ id: goalId, title: trimmed });
+        await refetch();
+      } catch {
+        // 에러는 useUpdateGoal에서 처리 가능
+      }
+    },
+    [updateGoalMutation, refetch]
+  );
+
+  const addTask = useCallback(
+    async (goalId: string, title: string, taskDate: string) => {
+      const trimmed = title.trim();
+      if (!trimmed) return;
+
+      try {
+        await createTaskMutation({
+          goalId,
+          title: trimmed,
+          taskDate,
+        });
+      } catch {
+        // 에러는 useCreateTask에서 처리 가능
+      }
+    },
+    [createTaskMutation]
+  );
+
+  const toggleTask = useCallback(
+    (_goalId: string, _taskId: string) => {
+      // TODO: updateTask mutation 연동 필요
+      refetch();
+    },
+    [refetch]
+  );
+
+  const deleteTask = useCallback(
+    async (_goalId: string, taskId: string) => {
+      try {
+        await deleteTaskMutation(taskId);
+      } catch {
+        // 에러는 useDeleteTask에서 처리 가능
+      }
+    },
+    [deleteTaskMutation]
+  );
+
+  const updateTask = useCallback(
+    (_goalId: string, _taskId: string, _newTitle: string) => {
+      // TODO: updateTask mutation 연동 필요
+      refetch();
+    },
+    [refetch]
+  );
+
+  const deleteGoal = useCallback(
+    (_goalId: string) => {
+      // TODO: deleteGoal mutation 연동 필요
+      refetch();
+    },
+    [refetch]
+  );
 
   const value: GoalsContextValue = {
     goals,
+    loading,
+    error,
+    refetch,
     addGoal,
+    updateGoal,
     addTask,
     toggleTask,
     deleteTask,

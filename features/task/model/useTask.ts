@@ -3,16 +3,19 @@ import { TASK_QEURY } from '../api/task.query';
 import type { TaskDTO, TaskFilter } from 'entities/task/type';
 
 interface MyTasksResponse {
-  mytasks: TaskDTO[];
+  myTasks: TaskDTO[];
 }
 
 export function useTask(filter: TaskFilter) {
-  const { data, loading, error } = useQuery<MyTasksResponse>(TASK_QEURY, {
-    variables: { filter },
-  });
+  const { data, loading, error, refetch } = useQuery<MyTasksResponse>(
+    TASK_QEURY,
+    {
+      variables: { filter },
+    }
+  );
 
   const myTasks =
-    data?.mytasks?.map((dto) => ({
+    data?.myTasks?.map((dto) => ({
       id: dto.id,
       title: dto.title,
       status: dto.status,
@@ -22,5 +25,5 @@ export function useTask(filter: TaskFilter) {
       updatedAt: new Date(dto.updatedAt),
     })) ?? [];
 
-  return { myTasks, loading, error };
+  return { myTasks, loading, error, refetch };
 }
