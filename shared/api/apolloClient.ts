@@ -10,12 +10,15 @@ if (!graphqlEndpoint || typeof graphqlEndpoint !== 'string') {
   );
 }
 
-const authLink = setContext((_, { headers }) => ({
-  headers: {
-    ...headers,
-    authorization: tokenStorage.get() ? `Bearer ${tokenStorage.get()}` : '',
-  },
-}));
+const authLink = setContext((_, { headers }) => {
+  const token = tokenStorage.get();
+  return {
+    headers: {
+      ...headers,
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+    },
+  };
+});
 
 const httpLink = new HttpLink({
   uri: graphqlEndpoint || '/graphql',

@@ -4,6 +4,7 @@ export interface Step {
   key: string;
   color: StepColor;
   title: string;
+  placeholder: string;
   guide: { questions: string[] };
 }
 
@@ -12,6 +13,8 @@ export const STEPS: Step[] = [
     key: 'KEEP',
     color: 'green',
     title: 'KEEP : 유지할 점',
+    placeholder:
+      '오늘 ...을 해서 기분이 좋았다. 그래서 다음 테스크를 더 활기차게 진행할 수 있었다.\n이 행동이 긍정적인 반응을 불러일으켜서 유지하고 싶다.',
     guide: {
       questions: [
         '오늘 한 일 중 잘한 것은?',
@@ -24,6 +27,7 @@ export const STEPS: Step[] = [
     key: 'PROBLEM',
     color: 'red',
     title: 'PROBLEM : 문제점',
+    placeholder: '...을 하는데 예상보다 시간을 오래 쏟아부었다.',
     guide: {
       questions: [
         '오늘 잘 안 됐던 것은?',
@@ -36,6 +40,7 @@ export const STEPS: Step[] = [
     key: 'TRY',
     color: 'main1',
     title: 'TRY : 시도할 것',
+    placeholder: '앞으로 매일 ...을 트래킹해야겠다.',
     guide: {
       questions: [
         '다음에 다르게 할 행동은?',
