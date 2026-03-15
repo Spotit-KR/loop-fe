@@ -5,15 +5,18 @@ export interface GoalCardProps {
   goal: {
     id: string;
     title: string;
-    completed: number;
-    total: number;
+    completedTaskCount: number;
+    totalTaskCount: number;
+    achievementRate?: number;
   };
 }
 
 export function GoalCard({ goal }: GoalCardProps) {
   const navigate = useNavigate();
   const progressPercent =
-    goal.total > 0 ? (goal.completed / goal.total) * 100 : 0;
+    goal.achievementRate ?? (goal.totalTaskCount > 0
+      ? (goal.completedTaskCount / goal.totalTaskCount) * 100
+      : 0);
 
   const handleClick = () => {
     navigate(`/goals/${goal.id}`);
@@ -44,7 +47,7 @@ export function GoalCard({ goal }: GoalCardProps) {
               />
             </div>
             <span className="shrink-0 text-sm text-sub2">
-              {goal.completed} / {goal.total}
+              {goal.completedTaskCount} / {goal.totalTaskCount}
             </span>
           </div>
         </div>
