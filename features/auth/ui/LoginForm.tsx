@@ -6,7 +6,7 @@ import { useLogin } from '../model/useLogin';
 export function LoginForm() {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
-  const { login, loading, error } = useLogin();
+  const { login, errorMessage } = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +37,14 @@ export function LoginForm() {
           required
         />
       </div>
+      {errorMessage && (
+        <div className="rounded-lg bg-red/10 px-4 py-3 text-sm text-red flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="size-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <path fillRule="evenodd" d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 5a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1zm0 8a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" clipRule="evenodd" />
+          </svg>
+          {errorMessage}
+        </div>
+      )}
       <Button type="submit">로그인하기</Button>
       <p className="text-center text-sm text-sub1">
         계정이 없으신가요?{' '}

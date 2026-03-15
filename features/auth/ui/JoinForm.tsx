@@ -23,7 +23,7 @@ export function JoinForm() {
   const [nickname, setNickname] = useState('');
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
-  const { register, loading, error } = useRegister();
+  const { register, loading, errorMessage } = useRegister();
 
   const conditions: PasswordCondition[] = [
     { label: '8자 이상', met: password.length >= 8 },
@@ -83,8 +83,13 @@ export function JoinForm() {
           )}
         </div>
       </div>
-      {error && (
-        <p className="text-sm text-red text-center">{error.message}</p>
+      {errorMessage && (
+        <div className="rounded-lg bg-red/10 px-4 py-3 text-sm text-red flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="size-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <path fillRule="evenodd" d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 5a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1zm0 8a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" clipRule="evenodd" />
+          </svg>
+          {errorMessage}
+        </div>
       )}
       <Button type="submit" disabled={loading || (password.length > 0 && !isPasswordValid)}>
         {loading ? '처리 중...' : '가입하기'}
