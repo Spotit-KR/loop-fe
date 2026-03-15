@@ -7,9 +7,17 @@ import { formatDateToYYYYMMDD } from 'shared/utils';
 import { AddGoalModal } from 'features/goals/ui/AddGoalModal';
 import { TodoHeader } from 'features/todo/TodoHeader';
 import { TodoItem } from 'features/todo/TodoItem';
+import { useMyReviews } from 'features/history';
+import { TodayReview } from 'entities/review';
+import { ReviewStartModal } from 'features/review';
 
 export const Todo = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const dateString = selectedDate.toISOString().split('T')[0];
+
+  const { myReviews } = useMyReviews({ date: dateString });
+  const todayReview = myReviews[0] ?? null;
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
   const {
     goals,
@@ -30,7 +38,9 @@ export const Todo = () => {
   const todos = useMemo(() => {
     return goals.map((goal) => {
       const goalTasks = myTasks.filter((t) => t.goalId === goal.id);
-      const completedCount = goalTasks.filter((t) => t.status === 'DONE').length;
+      const completedCount = goalTasks.filter(
+        (t) => t.status === 'DONE'
+      ).length;
       return {
         id: goal.id,
         title: goal.title,
@@ -78,10 +88,7 @@ export const Todo = () => {
     handleToggleTask(goalId, taskId);
   };
 
-  const handleDeleteTaskWrapper = async (
-    goalId: string,
-    taskId: string
-  ) => {
+  const handleDeleteTaskWrapper = async (goalId: string, taskId: string) => {
     await handleDeleteTask(goalId, taskId);
     refetchTasks();
   };
@@ -207,12 +214,8 @@ export const Todo = () => {
             onEditInputKeyDown={(taskId, e) =>
               handleEditInputKeyDown(todo.id, taskId, e)
             }
-            onToggleTask={(taskId) =>
-              handleToggleTaskWrapper(todo.id, taskId)
-            }
-            onDeleteTask={(taskId) =>
-              handleDeleteTaskWrapper(todo.id, taskId)
-            }
+            onToggleTask={(taskId) => handleToggleTaskWrapper(todo.id, taskId)}
+            onDeleteTask={(taskId) => handleDeleteTaskWrapper(todo.id, taskId)}
             onDeleteTodo={() => handleDeleteTodoWrapper(todo.id)}
           />
         ))}
@@ -221,6 +224,26 @@ export const Todo = () => {
             다른 목표를 만들고 싶다면 목표에서 추가할 수 있어요 →
           </p>
         </div>
+        <div className="w-full">
+          {todayReview ? (
+            <TodayReview steps={todayReview.steps} />
+          ) : (
+            <div className="flex justify-center">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-full max-w-215 mt-30 py-4 bg-main1 text-white rounded-[10px] text-[20px] font-medium cursor-pointer"
+              >
+                오늘 하루 회고로 마무리하기
+              </button>
+            </div>
+          )}
+        </div>
+        {isModalOpen && (
+          <ReviewStartModal
+            onClose={() => setIsModalOpen(false)}
+            date={dateStr}
+          />
+        )}
       </div>
     </div>
   );

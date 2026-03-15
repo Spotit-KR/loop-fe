@@ -5,7 +5,7 @@ import { tokenStorage } from 'shared/utils';
 
 const navItems = [
   {
-    to: '/todo',
+    to: '/',
     label: '오늘의 할일',
     icon: (
       <svg
