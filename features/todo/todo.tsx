@@ -9,9 +9,17 @@ import { formatDateToYYYYMMDD } from 'shared/utils';
 import { AddGoalModal } from 'features/goals/ui/AddGoalModal';
 import { TodoHeader } from 'features/todo/TodoHeader';
 import { TodoItem } from 'features/todo/TodoItem';
+import { useMyReviews } from 'features/history';
+import { TodayReview } from 'entities/review';
+import { ReviewStartModal } from 'features/review';
 
 export const Todo = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const dateString = selectedDate.toISOString().split('T')[0];
+
+  const { myReviews } = useMyReviews({ date: dateString });
+  const todayReview = myReviews[0] ?? null;
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
 
   // History 페이지(useMyReviews)와 동일하게 페이지에서 직접 myGoals 쿼리 호출
@@ -59,9 +67,7 @@ export const Todo = () => {
       .map((g) => g.id);
 
     const todosResult = goalsToShow.map((goal) => {
-      const goalTasks = myTasks.filter(
-        (t) => String(t.goalId) === goal.id
-      );
+      const goalTasks = myTasks.filter((t) => String(t.goalId) === goal.id);
       const completedCount = goalTasks.filter(
         (t) => t.status === 'DONE'
       ).length;
@@ -318,9 +324,7 @@ export const Todo = () => {
                       onChange={(e) =>
                         handleTaskInputChange(goal.id, e.target.value)
                       }
-                      onKeyDown={(e) =>
-                        handleTaskInputKeyDown(goal.id, e)
-                      }
+                      onKeyDown={(e) => handleTaskInputKeyDown(goal.id, e)}
                       className="flex-1 border-none text-base focus-visible:ring-0"
                       aria-label={`${goal.title}에 할 일 추가`}
                     />
@@ -335,6 +339,26 @@ export const Todo = () => {
             다른 목표를 만들고 싶다면 목표에서 추가할 수 있어요 →
           </p>
         </div>
+        <div className="w-full">
+          {todayReview ? (
+            <TodayReview steps={todayReview.steps} />
+          ) : (
+            <div className="flex justify-center">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-full max-w-215 mt-30 py-4 bg-main1 text-white rounded-[10px] text-[20px] font-medium cursor-pointer"
+              >
+                오늘 하루 회고로 마무리하기
+              </button>
+            </div>
+          )}
+        </div>
+        {isModalOpen && (
+          <ReviewStartModal
+            onClose={() => setIsModalOpen(false)}
+            date={dateStr}
+          />
+        )}
       </div>
     </div>
   );
