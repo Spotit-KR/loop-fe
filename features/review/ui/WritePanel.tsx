@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import type { Step } from 'features/review/constants';
 
 interface WritePanelProps {
@@ -24,6 +25,11 @@ export function WritePanel({
   onFinish,
 }: WritePanelProps) {
   const isLastStep = stepIndex === stepsLength - 1;
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, [stepIndex]);
 
   return (
     <section className="flex-1 flex flex-col gap-4 pt-4 min-w-0">
@@ -31,7 +37,8 @@ export function WritePanel({
         {currentStep.title}
       </h2>
       <textarea
-        className="flex-1 w-full rounded-[10px] shadow-[0px_4px_10px_0px_rgba(0,0,0,0.1)] bg-white p-6 text-[20px] text-sub2 resize-none outline-none max-h-75 overflow-y-auto"
+        ref={textareaRef}
+        className="flex-1 w-full rounded-[10px] shadow-[0px_4px_10px_0px_rgba(0,0,0,0.1)] bg-white p-6 text-[20px] text-sub2 resize-none outline-none max-h-75 overflow-y-auto focus:ring-2 focus:ring-main1"
         placeholder={`${currentStep.key}에 대해 자유롭게 작성해주세요.`}
         value={answer}
         onChange={(e) => onAnswerChange(e.target.value)}
