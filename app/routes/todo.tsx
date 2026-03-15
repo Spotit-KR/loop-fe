@@ -1,4 +1,4 @@
-import { Todo } from 'features/todo/Todo';
+import { Todo } from 'features/todo/todo';
 
 export function meta() {
   return [
