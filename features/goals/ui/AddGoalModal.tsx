@@ -13,7 +13,7 @@ import { Input } from 'shared/ui/components/input';
 interface AddGoalModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddGoal: (title: string) => void;
+  onAddGoal: (title: string) => void | Promise<void>;
 }
 
 export function AddGoalModal({
@@ -22,6 +22,7 @@ export function AddGoalModal({
   onAddGoal,
 }: AddGoalModalProps) {
   const [goalText, setGoalText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -29,13 +30,18 @@ export function AddGoalModal({
     }
   }, [open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!goalText.trim()) return;
 
-    onAddGoal(goalText);
-    setGoalText('');
-    onOpenChange(false);
+    setIsSubmitting(true);
+    try {
+      await onAddGoal(goalText);
+      setGoalText('');
+      onOpenChange(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -81,9 +87,9 @@ export function AddGoalModal({
             <Button
               type="submit"
               className="h-12 flex-1 bg-main1 px-6 py-3 hover:bg-main1/90"
-              disabled={!goalText.trim()}
+              disabled={!goalText.trim() || isSubmitting}
             >
-              만들기
+              {isSubmitting ? '만드는 중...' : '만들기'}
             </Button>
           </DialogFooter>
         </form>
