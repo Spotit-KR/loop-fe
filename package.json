@@ -2,7 +2,9 @@
   "name": "frontend",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@9.14.2",
   "scripts": {
+    "lockfile": "pnpm install --lockfile-only",
     "build": "react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
