@@ -6,7 +6,7 @@ import { useLogin } from '../model/useLogin';
 export function LoginForm() {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
-  const { login, loading, error } = useLogin();
+  const { login, errorMessage } = useLogin();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +37,9 @@ export function LoginForm() {
           required
         />
       </div>
+      {errorMessage && (
+        <p className="text-sm text-red text-center">{errorMessage}</p>
+      )}
       <Button type="submit">로그인하기</Button>
       <p className="text-center text-sm text-sub1">
         계정이 없으신가요?{' '}
