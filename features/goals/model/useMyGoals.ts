@@ -18,7 +18,10 @@ export interface MyGoal {
 
 export function useMyGoals() {
   const { data, loading, error, refetch } = useQuery<MyGoalsResponse>(
-    MY_GOALS_QUERY
+    MY_GOALS_QUERY,
+    {
+      fetchPolicy: 'cache-and-network',
+    }
   );
 
   const myGoals: MyGoal[] =
