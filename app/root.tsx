@@ -43,6 +43,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+export function HydrateFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-main1 border-t-transparent" />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <ApolloProvider client={apolloClient}>
