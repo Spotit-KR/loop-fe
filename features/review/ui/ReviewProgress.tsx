@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router';
 import { UserIcon } from 'shared/ui';
 import { STEPS } from 'features/review/constants';
+import { useCreateReview } from '../model/useCreateReview';
 import { ProgressBar } from './ProgressBar';
 import { ActionPanel } from './ActionPanel';
 import { WritePanel } from './WritePanel';
@@ -11,8 +13,13 @@ interface ReviewProgressProps {
 }
 
 export function ReviewProgress({ onComplete }: ReviewProgressProps) {
+  const [searchParams] = useSearchParams();
+  const date = searchParams.get('date') ?? '';
+
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState(() => STEPS.map(() => ''));
+
+  const { createReview } = useCreateReview();
 
   const currentStep = STEPS[stepIndex];
   const canGoNext = answers[stepIndex].trim() !== '';
@@ -33,6 +40,15 @@ export function ReviewProgress({ onComplete }: ReviewProgressProps) {
     });
   };
 
+  const handleFinish = async () => {
+    const steps = STEPS.map((step, i) => ({
+      type: step.key,
+      content: answers[i],
+    }));
+    await createReview({ steps, date });
+    onComplete();
+  };
+
   return (
     <>
       <ProgressBar steps={STEPS} stepIndex={stepIndex} />
@@ -47,16 +63,10 @@ export function ReviewProgress({ onComplete }: ReviewProgressProps) {
           onAnswerChange={handleAnswerChange}
           onPrev={handlePrev}
           onNext={handleNext}
-          onFinish={onComplete}
+          onFinish={handleFinish}
         />
         <GuidePanel steps={STEPS} stepIndex={stepIndex} />
       </div>
-      <footer className="h-15.5 border-t border-sub3 px-7.75 flex items-center gap-4 shrink-0">
-        <span className="w-7.25 h-7.25 rounded-full bg-sub3 flex items-center justify-center">
-          <UserIcon className="w-4 h-4 text-sub2" />
-        </span>
-        <span className="text-[20px] font-medium text-main2">회고짱짱님</span>
-      </footer>
     </>
   );
 }

@@ -1,5 +1,7 @@
 import { NavLink } from 'react-router';
-import { LoopLogoIcon } from 'shared/ui';
+import { LoopLogoIcon, UserIcon } from 'shared/ui';
+import { useMe } from 'features/auth';
+import { tokenStorage } from 'shared/utils';
 
 const navItems = [
   {
@@ -50,33 +52,52 @@ const navItems = [
 ];
 
 export function Sidebar() {
+  const { nickname } = useMe();
+  const isLoggedIn = !!tokenStorage.get();
+
   return (
-    <aside className="w-[288px] shrink-0 h-screen bg-white border-r border-sub3">
+    <aside className="w-[288px] shrink-0 h-screen bg-white border-r border-sub3 flex flex-col">
       <div className="flex items-center gap-3 px-7.25 h-33">
         <LoopLogoIcon size={40} />
         <span className="text-2xl font-semibold text-main1">Loop</span>
       </div>
-      <nav>
+      <nav className="flex-1">
         {navItems.map(({ to, label, icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `flex items-center gap-[29px] h-[62px] px-[29px] transition-colors ${
+              `flex items-center gap-7.25 h-15.5 px-7.25 transition-colors ${
                 isActive
                   ? 'bg-main1/20 text-main1'
                   : 'text-main2 hover:bg-main1/10'
               }`
             }
           >
-            <span className="w-[25px] flex items-center justify-center shrink-0">
+            <span className="w-6.25 flex items-center justify-center shrink-0">
               {icon}
             </span>
             <span className="text-[20px] font-medium">{label}</span>
           </NavLink>
         ))}
       </nav>
+
+      <NavLink
+        to={isLoggedIn ? '/mypage' : '/auth/login'}
+        className={({ isActive }) =>
+          `flex items-center gap-7.25 h-15.5 px-7.25 transition-colors ${
+            isActive
+              ? 'bg-main1/20 text-main1'
+              : 'text-main2 hover:bg-main1/10'
+          }`
+        }
+      >
+        <UserIcon className="w-6.25 h-6.25 shrink-0" />
+        <span className="text-[20px] font-medium">
+          {isLoggedIn ? `${nickname}님` : '로그인하기'}
+        </span>
+      </NavLink>
     </aside>
   );
 }
