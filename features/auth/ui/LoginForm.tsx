@@ -38,7 +38,12 @@ export function LoginForm() {
         />
       </div>
       {errorMessage && (
-        <p className="text-sm text-red text-center">{errorMessage}</p>
+        <div className="rounded-lg bg-red/10 px-4 py-3 text-sm text-red flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="size-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <path fillRule="evenodd" d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 5a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1zm0 8a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" clipRule="evenodd" />
+          </svg>
+          {errorMessage}
+        </div>
       )}
       <Button type="submit">로그인하기</Button>
       <p className="text-center text-sm text-sub1">
