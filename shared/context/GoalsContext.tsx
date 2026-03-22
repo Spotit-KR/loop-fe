@@ -9,6 +9,7 @@ import { useCreateGoal } from 'features/goals/model/useCreateGoal';
 import { useUpdateGoal } from 'features/goals/model/useUpdateGoal';
 import { useCreateTask } from 'features/task/model/useCreateTask';
 import { useDeleteTask } from 'features/task/model/useDeleteTask';
+import { useUpdateTask } from 'features/task/model/useUpdateTask';
 
 export interface TodoTask {
   id: string;
@@ -35,7 +36,7 @@ interface GoalsContextValue {
   addTask: (goalId: string, title: string, taskDate: string) => void;
   toggleTask: (goalId: string, taskId: string) => void;
   deleteTask: (goalId: string, taskId: string) => void;
-  updateTask: (goalId: string, taskId: string, newTitle: string) => void;
+  updateTask: (goalId: string, taskId: string, newTitle: string) => Promise<void>;
   deleteGoal: (goalId: string) => void;
 }
 
@@ -47,6 +48,7 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
   const { updateGoal: updateGoalMutation } = useUpdateGoal();
   const { createTask: createTaskMutation } = useCreateTask();
   const { deleteTask: deleteTaskMutation } = useDeleteTask();
+  const { updateTask: updateTaskMutation } = useUpdateTask();
 
   const goals: TodoGoal[] = myGoals.map((g) => ({
     id: String(g.id),
@@ -121,11 +123,14 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
   );
 
   const updateTask = useCallback(
-    (_goalId: string, _taskId: string, _newTitle: string) => {
-      // TODO: updateTask mutation 연동 필요
-      refetch();
+    async (_goalId: string, taskId: string, newTitle: string) => {
+      const trimmed = newTitle.trim();
+      if (!trimmed) return;
+
+      await updateTaskMutation({ id: taskId, title: trimmed });
+      await refetch();
     },
-    [refetch]
+    [updateTaskMutation, refetch]
   );
 
   const deleteGoal = useCallback(

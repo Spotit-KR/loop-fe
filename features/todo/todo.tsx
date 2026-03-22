@@ -165,7 +165,7 @@ export const Todo = () => {
     setEditingTaskInput(title);
   };
 
-  const handleUpdateTaskWrapper = (
+  const handleUpdateTaskWrapper = async (
     goalId: string,
     taskId: string,
     newTitle: string
@@ -175,8 +175,13 @@ export const Todo = () => {
       setEditingTask(null);
       return;
     }
-    handleUpdateTask(goalId, taskId, trimmed);
-    setEditingTask(null);
+    try {
+      await handleUpdateTask(goalId, taskId, trimmed);
+      await refetchTasks();
+      setEditingTask(null);
+    } catch {
+      // 실패 시 편집 상태 유지
+    }
   };
 
   const handleEditInputKeyDown = (
@@ -325,7 +330,7 @@ export const Todo = () => {
                         handleTaskInputChange(goal.id, e.target.value)
                       }
                       onKeyDown={(e) => handleTaskInputKeyDown(goal.id, e)}
-                      className="flex-1 border-none text-base focus-visible:ring-0"
+                      className="flex-1 border-none text-base md:text-base focus-visible:ring-0"
                       aria-label={`${goal.title}에 할 일 추가`}
                     />
                   </div>

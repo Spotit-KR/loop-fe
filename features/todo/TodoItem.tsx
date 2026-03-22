@@ -25,7 +25,7 @@ interface TodoItemProps {
   editingTaskInput: string;
   onEditingTaskInputChange: (value: string) => void;
   onStartEdit: (taskId: string, title: string) => void;
-  onUpdateTask: (taskId: string, newTitle: string) => void;
+  onUpdateTask: (taskId: string, newTitle: string) => void | Promise<void>;
   onEditInputKeyDown: (
     taskId: string,
     e: React.KeyboardEvent<HTMLInputElement>
@@ -133,7 +133,7 @@ export const TodoItem = ({
                           onBlur={() =>
                             onUpdateTask(task.id, editingTaskInput)
                           }
-                          className="h-auto border-none px-0 py-0 text-base focus-visible:ring-0"
+                          className="h-auto border-none px-0 py-0 text-base md:text-base focus-visible:ring-0"
                           aria-label="할 일 수정"
                         />
                       ) : (
@@ -180,7 +180,7 @@ export const TodoItem = ({
                 value={taskInput}
                 onChange={(e) => onTaskInputChange(e.target.value)}
                 onKeyDown={onTaskInputKeyDown}
-                className="border-none text-lg text-sub2 placeholder:text-sub2 focus-visible:border focus-visible:border-gray-300 focus-visible:ring-0"
+                className="border-none text-base md:text-base text-sub2 placeholder:text-sub2 focus-visible:border focus-visible:border-gray-300 focus-visible:ring-0"
                 aria-label="할 일 입력"
               />
             </div>
