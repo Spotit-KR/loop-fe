@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router';
 import { Send } from 'lucide-react';
 import { Button } from 'shared/ui/components/button';
 import { Input } from 'shared/ui/components/input';
@@ -350,9 +351,13 @@ export const Todo = () => {
           </div>
         )}
         <div className="flex items-center justify-center">
-          <p className="mt-5 text-lg text-sub2">
+          <Link
+            to="/goals"
+            className="mt-5 cursor-pointer text-lg text-sub2 underline-offset-4 transition-colors "
+            aria-label="목표 관리 페이지로 이동하여 다른 목표 추가하기"
+          >
             다른 목표를 만들고 싶다면 목표에서 추가할 수 있어요 →
-          </p>
+          </Link>
         </div>
         <div className="w-full">
           {todayReview ? (
