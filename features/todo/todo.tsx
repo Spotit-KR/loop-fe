@@ -1,8 +1,7 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { Send } from 'lucide-react';
 import { Button } from 'shared/ui/components/button';
-import { Input } from 'shared/ui/components/input';
 import { useGoals } from 'shared/context/GoalsContext';
 import { useMyGoals } from 'features/goals/model/useMyGoals';
 import { useTask } from 'features/task/model/useTask';
@@ -18,7 +17,9 @@ export const Todo = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
 
-  const { myReviews } = useMyReviews({ date: formatDateToYYYYMMDD(selectedDate) });
+  const { myReviews } = useMyReviews({
+    date: formatDateToYYYYMMDD(selectedDate),
+  });
   const todayReview = myReviews[0] ?? null;
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
 
@@ -92,8 +93,23 @@ export const Todo = () => {
     [goals, hiddenGoalIds]
   );
 
+  const [expandedHiddenGoalId, setExpandedHiddenGoalId] = useState<
+    string | null
+  >(null);
+
+  useEffect(() => {
+    if (
+      expandedHiddenGoalId &&
+      !hiddenGoals.some((g) => g.id === expandedHiddenGoalId)
+    ) {
+      setExpandedHiddenGoalId(null);
+    }
+  }, [hiddenGoals, expandedHiddenGoalId]);
+
   const allTasksDone = useMemo(
-    () => todos.length > 0 && todos.every((t) => t.total > 0 && t.completed === t.total),
+    () =>
+      todos.length > 0 &&
+      todos.every((t) => t.total > 0 && t.completed === t.total),
     [todos]
   );
 
@@ -121,7 +137,6 @@ export const Todo = () => {
   };
 
   const [taskInputs, setTaskInputs] = useState<Record<string, string>>({});
-  const [isAddOtherGoalsOpen, setIsAddOtherGoalsOpen] = useState(false);
   const isSubmittingRef = useRef(false);
   const [editingTask, setEditingTask] = useState<{
     goalId: string;
@@ -322,51 +337,67 @@ export const Todo = () => {
             onDeleteTodo={() => handleDeleteTodoWrapper(todo.id)}
           />
         ))}
-        {hiddenGoals.length > 0 && (
-          <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-200">
-            <button
-              type="button"
-              onClick={() => setIsAddOtherGoalsOpen((prev) => !prev)}
-              className="flex w-full items-center justify-between text-left text-base text-sub2 hover:text-main2"
-              aria-expanded={isAddOtherGoalsOpen}
-              aria-label={
-                isAddOtherGoalsOpen
-                  ? '다른 목표에 할 일 추가 접기'
-                  : '다른 목표에 할 일 추가 펼치기'
-              }
-            >
-              <span>다른 목표에 할 일 추가</span>
-              <span className="text-xl" aria-hidden>
-                {isAddOtherGoalsOpen ? '−' : '+'}
-              </span>
-            </button>
-            {isAddOtherGoalsOpen && (
-              <div className="mt-4 space-y-3">
-                {hiddenGoals.map((goal) => (
-                  <div
-                    key={goal.id}
-                    className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2"
-                  >
-                    <span className="shrink-0 text-sm text-sub2">
-                      {goal.title}
-                    </span>
-                    <Input
-                      type="text"
-                      placeholder="할 일 입력"
-                      value={taskInputs[goal.id] ?? ''}
-                      onChange={(e) =>
-                        handleTaskInputChange(goal.id, e.target.value)
+        {hiddenGoals.length > 0 ? (
+          <div className="space-y-3">
+            {hiddenGoals.map((goal) => {
+              const isExpanded = expandedHiddenGoalId === goal.id;
+              return (
+                <div key={goal.id}>
+                  {!isExpanded ? (
+                    <button
+                      type="button"
+                      onClick={() => setExpandedHiddenGoalId(goal.id)}
+                      aria-expanded={false}
+                      aria-label={`${goal.title}, 할 일 입력 펼치기`}
+                      className="rounded-[15px] bg-sub3 px-10 py-3 text-left text-sm text-gray-600 transition-colors hover:bg-gray-300/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/40"
+                    >
+                      <span className="line-clamp-2 wrap-break-word">
+                        {goal.title}
+                      </span>
+                    </button>
+                  ) : (
+                    <TodoItem
+                      todo={{
+                        id: goal.id,
+                        title: goal.title,
+                        completed: 0,
+                        total: 0,
+                        tasks: [],
+                      }}
+                      taskInput={taskInputs[goal.id] ?? ''}
+                      onTaskInputChange={(value) =>
+                        handleTaskInputChange(goal.id, value)
                       }
-                      onKeyDown={(e) => handleTaskInputKeyDown(goal.id, e)}
-                      className="flex-1 border-none text-base md:text-base focus-visible:ring-0"
-                      aria-label={`${goal.title}에 할 일 추가`}
+                      onTaskInputKeyDown={(e) =>
+                        handleTaskInputKeyDown(goal.id, e)
+                      }
+                      editingTask={editingTask}
+                      editingTaskInput={editingTaskInput}
+                      onEditingTaskInputChange={setEditingTaskInput}
+                      onStartEdit={(taskId, title) =>
+                        handleStartEdit(goal.id, taskId, title)
+                      }
+                      onUpdateTask={(taskId, newTitle) =>
+                        handleUpdateTaskWrapper(goal.id, taskId, newTitle)
+                      }
+                      onEditInputKeyDown={(taskId, e) =>
+                        handleEditInputKeyDown(goal.id, taskId, e)
+                      }
+                      onToggleTask={(taskId) =>
+                        handleToggleTaskWrapper(goal.id, taskId)
+                      }
+                      onDeleteTask={(taskId) =>
+                        handleDeleteTaskWrapper(goal.id, taskId)
+                      }
+                      onDeleteTodo={() => handleDeleteTodoWrapper(goal.id)}
+                      hideFirstTaskHint
                     />
-                  </div>
-                ))}
-              </div>
-            )}
+                  )}
+                </div>
+              );
+            })}
           </div>
-        )}
+        ) : null}
         <div className="flex items-center justify-center">
           <Link
             to="/goals"

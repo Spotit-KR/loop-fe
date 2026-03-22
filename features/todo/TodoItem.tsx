@@ -34,6 +34,8 @@ interface TodoItemProps {
   onToggleTask: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
   onDeleteTodo: () => void | Promise<void>;
+  /** true면 할 일이 없을 때 "첫 할 일을 적어보세요!" 문구를 숨깁니다 */
+  hideFirstTaskHint?: boolean;
 }
 
 export const TodoItem = ({
@@ -50,6 +52,7 @@ export const TodoItem = ({
   onToggleTask,
   onDeleteTask,
   onDeleteTodo,
+  hideFirstTaskHint = false,
 }: TodoItemProps) => {
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const moreMenuRef = useRef<HTMLDivElement>(null);
@@ -143,10 +146,8 @@ export const TodoItem = ({
             </div>
           </div>
 
-          <div className="mt-4 space-y-3">
-            {todo.tasks.length === 0 ? (
-              <p className="text-lg text-blue-500">첫 할 일을 적어보세요!</p>
-            ) : (
+          {todo.tasks.length > 0 ? (
+            <div className="mt-4 space-y-3">
               <ul className="space-y-3">
                 {todo.tasks.map((task) => (
                   <li
@@ -188,21 +189,15 @@ export const TodoItem = ({
                           onChange={(e) =>
                             onEditingTaskInputChange(e.target.value)
                           }
-                          onKeyDown={(e) =>
-                            onEditInputKeyDown(task.id, e)
-                          }
-                          onBlur={() =>
-                            onUpdateTask(task.id, editingTaskInput)
-                          }
+                          onKeyDown={(e) => onEditInputKeyDown(task.id, e)}
+                          onBlur={() => onUpdateTask(task.id, editingTaskInput)}
                           className="h-auto border-none px-0 py-0 text-base md:text-base focus-visible:ring-0"
                           aria-label="할 일 수정"
                         />
                       ) : (
                         <button
                           type="button"
-                          onClick={() =>
-                            onStartEdit(task.id, task.title)
-                          }
+                          onClick={() => onStartEdit(task.id, task.title)}
                           className="min-w-0 flex-1 text-left"
                         >
                           <span
@@ -229,11 +224,15 @@ export const TodoItem = ({
                   </li>
                 ))}
               </ul>
-            )}
-          </div>
+            </div>
+          ) : hideFirstTaskHint ? null : (
+            <div className="mt-4 space-y-3">
+              <p className="text-lg text-blue-500">첫 할 일을 적어보세요!</p>
+            </div>
+          )}
 
-          <div className="flex items-center justify-between">
-            <div className="flex flex-1 items-center gap-2 pt-5">
+          <div className="flex items-center pt-5">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               <Plus className="h-4 w-4 shrink-0 text-sub2" />
               <Input
                 type="text"
@@ -245,15 +244,6 @@ export const TodoItem = ({
                 aria-label="할 일 입력"
               />
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              onClick={onDeleteTodo}
-              aria-label="삭제"
-            >
-              <Trash2 className="h-4 w-4 text-gray-400" />
-            </Button>
           </div>
         </div>
       </div>
