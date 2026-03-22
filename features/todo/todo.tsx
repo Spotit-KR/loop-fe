@@ -103,23 +103,26 @@ export const Todo = () => {
   }, [goals, myTasks]);
 
   const hiddenGoals = useMemo(
-    () =>
-      sortByCreatedAtAsc(goals.filter((g) => hiddenGoalIds.includes(g.id))),
+    () => sortByCreatedAtAsc(goals.filter((g) => hiddenGoalIds.includes(g.id))),
     [goals, hiddenGoalIds]
   );
 
-  const [expandedHiddenGoalId, setExpandedHiddenGoalId] = useState<
-    string | null
-  >(null);
+  const [expandedHiddenGoalIds, setExpandedHiddenGoalIds] = useState<
+    Set<string>
+  >(() => new Set());
 
   useEffect(() => {
-    if (
-      expandedHiddenGoalId &&
-      !hiddenGoals.some((g) => g.id === expandedHiddenGoalId)
-    ) {
-      setExpandedHiddenGoalId(null);
-    }
-  }, [hiddenGoals, expandedHiddenGoalId]);
+    const hiddenIds = new Set(hiddenGoals.map((g) => g.id));
+    setExpandedHiddenGoalIds((prev) => {
+      const next = new Set(
+        [...prev].filter((id) => hiddenIds.has(id))
+      );
+      if (next.size === prev.size && [...prev].every((id) => next.has(id))) {
+        return prev;
+      }
+      return next;
+    });
+  }, [hiddenGoals]);
 
   const allTasksDone = useMemo(
     () =>
@@ -216,6 +219,14 @@ export const Todo = () => {
     } catch {
       // 삭제 실패 시 UI 유지
     }
+  };
+
+  const handleClickExpandHiddenGoal = (goalId: string) => {
+    setExpandedHiddenGoalIds((prev) => {
+      const next = new Set(prev);
+      next.add(goalId);
+      return next;
+    });
   };
 
   const handleStartEdit = (goalId: string, taskId: string, title: string) => {
@@ -353,25 +364,14 @@ export const Todo = () => {
           />
         ))}
         {hiddenGoals.length > 0 ? (
-          <div className="space-y-3">
-            {hiddenGoals.map((goal) => {
-              const isExpanded = expandedHiddenGoalId === goal.id;
-              return (
-                <div key={goal.id}>
-                  {!isExpanded ? (
-                    <button
-                      type="button"
-                      onClick={() => setExpandedHiddenGoalId(goal.id)}
-                      aria-expanded={false}
-                      aria-label={`${goal.title}, 할 일 입력 펼치기`}
-                      className="rounded-[15px] bg-sub3 px-10 py-3 text-left text-sm text-gray-600 transition-colors hover:bg-gray-300/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/40"
-                    >
-                      <span className="line-clamp-2 wrap-break-word">
-                        {goal.title}
-                      </span>
-                    </button>
-                  ) : (
+          <div className="space-y-4">
+            {hiddenGoals.some((g) => expandedHiddenGoalIds.has(g.id)) ? (
+              <div className="flex w-full min-w-0 flex-col gap-4">
+                {hiddenGoals
+                  .filter((g) => expandedHiddenGoalIds.has(g.id))
+                  .map((goal) => (
                     <TodoItem
+                      key={goal.id}
                       todo={{
                         id: goal.id,
                         title: goal.title,
@@ -407,10 +407,33 @@ export const Todo = () => {
                       onDeleteTodo={() => handleDeleteTodoWrapper(goal.id)}
                       hideFirstTaskHint
                     />
-                  )}
-                </div>
-              );
-            })}
+                  ))}
+              </div>
+            ) : null}
+            {hiddenGoals.some((g) => !expandedHiddenGoalIds.has(g.id)) ? (
+              <div className="flex flex-wrap justify-start gap-2 sm:gap-3">
+                {hiddenGoals
+                  .filter((g) => !expandedHiddenGoalIds.has(g.id))
+                  .map((goal) => (
+                    <div
+                      key={goal.id}
+                      className="min-w-0 max-w-full shrink"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleClickExpandHiddenGoal(goal.id)}
+                        aria-expanded={false}
+                        aria-label={`${goal.title}, 할 일 입력 펼치기`}
+                        className="inline-flex max-w-full min-w-0 rounded-[15px] bg-sub3 px-4 py-3 text-left text-sm text-gray-600 transition-colors hover:bg-gray-300/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/40 sm:px-6"
+                      >
+                        <span className="line-clamp-2 wrap-break-word">
+                          {goal.title}
+                        </span>
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
         <div className="flex items-center justify-center">
