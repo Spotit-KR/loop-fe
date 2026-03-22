@@ -9,7 +9,7 @@ interface MyReviewsResponse {
 export function useMyReviews(filter: ReviewFilter) {
   const { data, loading, error } = useQuery<MyReviewsResponse>(
     MY_REVIEWS_QUERY,
-    { variables: { filter } }
+    { variables: { filter }, fetchPolicy: 'cache-and-network' }
   );
 
   const myReviews: Review[] =
