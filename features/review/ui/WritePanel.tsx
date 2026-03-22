@@ -59,17 +59,24 @@ export function WritePanel({
 
     if (isEmptyItem) {
       // 빈 항목에서 Enter → 리스트 종료, 접두사 제거
-      newValue = value.substring(0, lineStart) + value.substring(selectionStart);
+      newValue =
+        value.substring(0, lineStart) + value.substring(selectionStart);
       newCursor = lineStart;
     } else if (unorderedMatch) {
       const [, indent, bullet] = unorderedMatch;
       const insertion = `\n${indent}${bullet} `;
-      newValue = value.substring(0, selectionStart) + insertion + value.substring(selectionEnd);
+      newValue =
+        value.substring(0, selectionStart) +
+        insertion +
+        value.substring(selectionEnd);
       newCursor = selectionStart + insertion.length;
     } else {
       const [, indent, numStr] = orderedMatch!;
       const insertion = `\n${indent}${parseInt(numStr) + 1}. `;
-      newValue = value.substring(0, selectionStart) + insertion + value.substring(selectionEnd);
+      newValue =
+        value.substring(0, selectionStart) +
+        insertion +
+        value.substring(selectionEnd);
       newCursor = selectionStart + insertion.length;
     }
 
@@ -83,7 +90,7 @@ export function WritePanel({
   };
 
   return (
-    <section className="flex-1 flex flex-col gap-4 pt-4 min-w-0">
+    <section className="flex-1 flex flex-col gap-4 pt-4 min-w-[300px]">
       <h2 className="text-[25px] font-semibold text-main2">
         {currentStep.title}
       </h2>
