@@ -8,7 +8,7 @@ interface ProgressBarProps {
 
 export function ProgressBar({ steps, stepIndex }: ProgressBarProps) {
   return (
-    <div className="px-54.5 pt-6 pb-2 shrink-0">
+    <div className="px-54.5 pt-6 pb-2 shrink-0 min-w-325">
       <div className="flex gap-2">
         {steps.map((step, i) => {
           const { bar, label } = colorMap[step.color];

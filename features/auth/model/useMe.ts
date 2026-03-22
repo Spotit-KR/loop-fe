@@ -1,14 +1,17 @@
+import { useQuery } from '@apollo/client/react';
 import { tokenStorage } from 'shared/utils';
-
-interface TokenPayload {
-  nickname: string;
-  loginId: string;
-}
+import { ME_QUERY } from '../api/me.query';
+import type { MeQueryResult } from '../api/me.query';
 
 export function useMe() {
-  const payload = tokenStorage.parse<TokenPayload>();
+  const isLoggedIn = !!tokenStorage.get();
+
+  const { data } = useQuery<MeQueryResult>(ME_QUERY, {
+    skip: !isLoggedIn,
+  });
+
   return {
-    nickname: payload?.nickname ?? '',
-    loginId: payload?.loginId ?? '',
+    nickname: data?.me.nickname ?? '',
+    loginId: data?.me.loginId ?? '',
   };
 }

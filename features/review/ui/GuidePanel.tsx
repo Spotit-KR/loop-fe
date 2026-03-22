@@ -7,7 +7,7 @@ interface GuidePanelProps {
 
 export function GuidePanel({ steps, stepIndex }: GuidePanelProps) {
   return (
-    <aside className="w-84.25 shrink-0 pt-4">
+    <aside className="min-w-7.5 shrink-0 pt-4">
       <h2 className="text-[25px] font-semibold text-main2 mb-4">가이드라인</h2>
       <div className="border border-main1 rounded-[10px] bg-white p-6">
         {steps.map((step, i) => {
