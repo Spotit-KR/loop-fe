@@ -77,7 +77,7 @@ export function Goals() {
         onOpenChange={setIsAddModalOpen}
         onAddGoal={addGoal}
       />
-      <div className="flex max-w-2xl flex-col gap-4">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
         {goals.map((goal) => (
           <GoalCard key={goal.id} goal={goal} />
         ))}
