@@ -33,6 +33,7 @@ export function WritePanel({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== 'Enter') return;
+    if (e.nativeEvent.isComposing) return;
 
     const textarea = textareaRef.current!;
     const { value, selectionStart, selectionEnd } = textarea;
