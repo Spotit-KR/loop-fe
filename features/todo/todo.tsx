@@ -16,9 +16,8 @@ import { ReviewStartModal } from 'features/review';
 export const Todo = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
-  const dateString = selectedDate.toISOString().split('T')[0];
 
-  const { myReviews } = useMyReviews({ date: dateString });
+  const { myReviews } = useMyReviews({ date: formatDateToYYYYMMDD(selectedDate) });
   const todayReview = myReviews[0] ?? null;
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
 
