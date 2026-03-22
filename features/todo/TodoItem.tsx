@@ -57,8 +57,8 @@ export const TodoItem = ({
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">
               {todo.title}
-              <span className="text-sm font-normal text-gray-400">
-                {todo.completed}/{todo.total}
+              <span className="ml-2 text-sm font-normal text-gray-400">
+                {todo.completed} / {todo.total}
               </span>
             </h3>
             <Button

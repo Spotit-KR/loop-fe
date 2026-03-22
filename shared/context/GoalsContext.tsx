@@ -10,6 +10,7 @@ import { useUpdateGoal } from 'features/goals/model/useUpdateGoal';
 import { useCreateTask } from 'features/task/model/useCreateTask';
 import { useDeleteTask } from 'features/task/model/useDeleteTask';
 import { useUpdateTask } from 'features/task/model/useUpdateTask';
+import type { TaskStatus } from 'entities/task/type';
 
 export interface TodoTask {
   id: string;
@@ -34,7 +35,11 @@ interface GoalsContextValue {
   addGoal: (title: string) => void;
   updateGoal: (goalId: string, title: string) => void;
   addTask: (goalId: string, title: string, taskDate: string) => void;
-  toggleTask: (goalId: string, taskId: string) => void;
+  toggleTask: (
+    goalId: string,
+    taskId: string,
+    status: TaskStatus
+  ) => Promise<void>;
   deleteTask: (goalId: string, taskId: string) => void;
   updateTask: (goalId: string, taskId: string, newTitle: string) => Promise<void>;
   deleteGoal: (goalId: string) => void;
@@ -104,11 +109,11 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
   );
 
   const toggleTask = useCallback(
-    (_goalId: string, _taskId: string) => {
-      // TODO: updateTask mutation 연동 필요
-      refetch();
+    async (_goalId: string, taskId: string, status: TaskStatus) => {
+      await updateTaskMutation({ id: taskId, status });
+      await refetch();
     },
-    [refetch]
+    [updateTaskMutation, refetch]
   );
 
   const deleteTask = useCallback(

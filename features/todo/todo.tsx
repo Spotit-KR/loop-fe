@@ -133,8 +133,18 @@ export const Todo = () => {
     }
   };
 
-  const handleToggleTaskWrapper = (goalId: string, taskId: string) => {
-    handleToggleTask(goalId, taskId);
+  const handleToggleTaskWrapper = async (goalId: string, taskId: string) => {
+    const task = myTasks.find((t) => t.id === taskId);
+    if (!task) return;
+
+    const nextStatus = task.status === 'DONE' ? 'TODO' : 'DONE';
+    try {
+      await handleToggleTask(goalId, taskId, nextStatus);
+      await refetchTasks();
+      await refetchGoals();
+    } catch {
+      // 토글 실패 시 UI는 refetch 전 상태 유지
+    }
   };
 
   const handleDeleteTaskWrapper = async (goalId: string, taskId: string) => {
