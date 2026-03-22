@@ -13,8 +13,14 @@ import { useMyReviews } from 'features/history';
 import { TodayReview } from 'entities/review';
 import { ReviewStartModal } from 'features/review';
 
-function sortGoalsByCreatedAtAsc<T extends { createdAt: Date }>(list: T[]): T[] {
-  return [...list].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+function sortByCreatedAtAsc<T extends { id: string; createdAt: Date }>(
+  list: T[]
+): T[] {
+  return [...list].sort((a, b) => {
+    const byTime = a.createdAt.getTime() - b.createdAt.getTime();
+    if (byTime !== 0) return byTime;
+    return a.id.localeCompare(b.id);
+  });
 }
 
 export const Todo = () => {
@@ -68,13 +74,15 @@ export const Todo = () => {
     );
     const goalsToShowRaw =
       goalsWithTasksOnDate.length > 0 ? goalsWithTasksOnDate : goals;
-    const goalsToShow = sortGoalsByCreatedAtAsc(goalsToShowRaw);
+    const goalsToShow = sortByCreatedAtAsc(goalsToShowRaw);
     const hiddenGoalIds = goals
       .filter((g) => !goalsToShow.some((s) => s.id === g.id))
       .map((g) => g.id);
 
     const todosResult = goalsToShow.map((goal) => {
-      const goalTasks = myTasks.filter((t) => String(t.goalId) === goal.id);
+      const goalTasks = sortByCreatedAtAsc(
+        myTasks.filter((t) => String(t.goalId) === goal.id)
+      );
       const completedCount = goalTasks.filter(
         (t) => t.status === 'DONE'
       ).length;
@@ -96,9 +104,7 @@ export const Todo = () => {
 
   const hiddenGoals = useMemo(
     () =>
-      sortGoalsByCreatedAtAsc(
-        goals.filter((g) => hiddenGoalIds.includes(g.id))
-      ),
+      sortByCreatedAtAsc(goals.filter((g) => hiddenGoalIds.includes(g.id))),
     [goals, hiddenGoalIds]
   );
 
