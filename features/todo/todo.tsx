@@ -91,6 +91,18 @@ export const Todo = () => {
     [goals, hiddenGoalIds]
   );
 
+  const allTasksDone = useMemo(
+    () => todos.length > 0 && todos.every((t) => t.total > 0 && t.completed === t.total),
+    [todos]
+  );
+
+  const isPast10pmKST =
+    new Date(
+      new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
+    ).getHours() >= 22;
+
+  const canStartReview = allTasksDone || isPast10pmKST;
+
   const handlePrevDate = () => {
     setSelectedDate((prev) => {
       const next = new Date(prev);
@@ -344,8 +356,13 @@ export const Todo = () => {
           ) : (
             <div className="flex justify-center">
               <button
-                onClick={() => setIsModalOpen(true)}
-                className="w-full max-w-215 mt-30 py-4 bg-main1 text-white rounded-[10px] text-[20px] font-medium cursor-pointer"
+                onClick={() => canStartReview && setIsModalOpen(true)}
+                disabled={!canStartReview}
+                className={`w-full max-w-215 mt-30 py-4 rounded-[10px] text-[20px] font-medium transition-colors ${
+                  canStartReview
+                    ? 'bg-main1 text-white cursor-pointer'
+                    : 'bg-sub3 text-sub2 cursor-not-allowed'
+                }`}
               >
                 오늘 하루 회고로 마무리하기
               </button>
