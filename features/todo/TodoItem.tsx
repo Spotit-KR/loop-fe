@@ -1,3 +1,4 @@
+import { useEffect, useId, useRef, useState } from 'react';
 import { MoreVertical, Trash2, Plus, Circle, CheckCircle2 } from 'lucide-react';
 import { Button } from 'shared/ui/components/button';
 import { Input } from 'shared/ui/components/input';
@@ -32,7 +33,7 @@ interface TodoItemProps {
   ) => void;
   onToggleTask: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
-  onDeleteTodo: () => void;
+  onDeleteTodo: () => void | Promise<void>;
 }
 
 export const TodoItem = ({
@@ -50,25 +51,85 @@ export const TodoItem = ({
   onDeleteTask,
   onDeleteTodo,
 }: TodoItemProps) => {
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
+
+  useEffect(() => {
+    if (!isMoreMenuOpen) return;
+
+    const handlePointerDown = (e: PointerEvent) => {
+      if (moreMenuRef.current?.contains(e.target as Node)) return;
+      setIsMoreMenuOpen(false);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsMoreMenuOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMoreMenuOpen]);
+
+  const handleToggleMoreMenu = () => {
+    setIsMoreMenuOpen((prev) => !prev);
+  };
+
+  const handleClickDeleteFromBoard = () => {
+    setIsMoreMenuOpen(false);
+    void onDeleteTodo();
+  };
+
   return (
     <div className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-gray-200">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="min-w-0 text-lg font-semibold text-gray-900">
               {todo.title}
               <span className="ml-2 text-sm font-normal text-gray-400">
                 {todo.completed} / {todo.total}
               </span>
             </h3>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="더보기"
-            >
-              <MoreVertical className="h-5 w-5 text-gray-600" />
-            </Button>
+            <div className="relative shrink-0" ref={moreMenuRef}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label="더보기 메뉴"
+                aria-expanded={isMoreMenuOpen}
+                aria-haspopup="menu"
+                aria-controls={isMoreMenuOpen ? menuId : undefined}
+                onClick={handleToggleMoreMenu}
+              >
+                <MoreVertical className="h-5 w-5 text-gray-600" aria-hidden />
+              </Button>
+              {isMoreMenuOpen ? (
+                <div
+                  id={menuId}
+                  role="menu"
+                  aria-label="목표 옵션"
+                  className="absolute right-0 top-full z-20 mt-1 min-w-[240px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-red-600 outline-none hover:bg-red-50 focus-visible:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-500/30"
+                    onClick={handleClickDeleteFromBoard}
+                  >
+                    <Trash2
+                      className="h-4 w-4 shrink-0 text-red-600"
+                      aria-hidden
+                    />
+                    오늘의 보드에서 삭제
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
 
           <div className="mt-3">

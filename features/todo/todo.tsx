@@ -167,8 +167,14 @@ export const Todo = () => {
     setTaskInputs((prev) => ({ ...prev, [goalId]: value }));
   };
 
-  const handleDeleteTodoWrapper = (id: string) => {
-    handleDeleteTodo(id);
+  const handleDeleteTodoWrapper = async (id: string) => {
+    try {
+      await handleDeleteTodo(id);
+      await refetchTasks();
+      await refetchGoals();
+    } catch {
+      // 삭제 실패 시 UI 유지
+    }
   };
 
   const handleStartEdit = (goalId: string, taskId: string, title: string) => {
