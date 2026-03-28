@@ -152,7 +152,7 @@ export const TodoItem = ({
                 {todo.tasks.map((task) => (
                   <li
                     key={task.id}
-                    className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 ${
+                    className={`group flex items-center justify-between gap-2 rounded-lg px-3 py-2 ${
                       task.completed ? 'bg-blue-50' : ''
                     }`}
                   >
@@ -218,6 +218,11 @@ export const TodoItem = ({
                       size="icon-sm"
                       onClick={() => onDeleteTask(task.id)}
                       aria-label={`${task.title} 삭제`}
+                      className={
+                        task.completed
+                          ? 'hidden'
+                          : 'cursor-pointer opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100'
+                      }
                     >
                       <Trash2 className="h-4 w-4 text-gray-400" />
                     </Button>
