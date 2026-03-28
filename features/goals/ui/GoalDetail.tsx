@@ -1,13 +1,19 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Menu } from '@base-ui/react/menu';
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { CheckCircle2, Circle, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { Button } from 'shared/ui/components/button';
 import { BackArrowIcon } from 'shared/ui';
 import { useGoals } from 'shared/context/GoalsContext';
 import { useTask } from 'features/task/model/useTask';
 import { EditGoalModal } from 'features/goals/ui/EditGoalModal';
 import { DeleteGoalModal } from 'features/goals/ui/DeleteGoalModal';
+import {
+  formatMonthWeekLabel,
+  formatMonthWeekLabelFromKey,
+  getMonthWeekKey,
+  getPreviousMonthWeekKey,
+} from 'features/goals/lib/monthWeekLabel';
 import { cn } from 'shared/lib/utils';
 
 interface GoalDetailProps {
@@ -24,11 +30,42 @@ export function GoalDetail({ goalId, onBack }: GoalDetailProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
+  /** 가장 최근 할 일이 속한 주차 + 그 직전 주차만 (최대 2개) — goal 유무와 무관하게 훅 순서 유지 */
+  const twoWeekSections = useMemo(() => {
+    if (myTasks.length === 0) return [];
+
+    const map = new Map<string, typeof myTasks>();
+    for (const task of myTasks) {
+      const key = getMonthWeekKey(task.taskDate);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(task);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => {
+        const byDate = a.taskDate.getTime() - b.taskDate.getTime();
+        if (byDate !== 0) return byDate;
+        return a.createdAt.getTime() - b.createdAt.getTime();
+      });
+    }
+
+    const maxDate = myTasks.reduce(
+      (max, t) => (t.taskDate > max ? t.taskDate : max),
+      myTasks[0].taskDate
+    );
+    const recentKey = getMonthWeekKey(maxDate);
+    const prevKey = getPreviousMonthWeekKey(recentKey);
+
+    return [
+      { weekKey: recentKey, tasks: map.get(recentKey) ?? [] },
+      { weekKey: prevKey, tasks: map.get(prevKey) ?? [] },
+    ];
+  }, [myTasks]);
+
   if (!goal) {
     return null;
   }
 
-  const achievementRate = goal.achievementRate;
+  const achievementRateRounded = Math.round(goal.achievementRate);
 
   const handleSaveGoal = async (title: string) => {
     await updateGoal(goalId, title);
@@ -154,33 +191,79 @@ export function GoalDetail({ goalId, onBack }: GoalDetailProps) {
             </div>
             <div className="my-4 border-t border-sub3" />
             <p className="text-center text-sm text-sub2">
-              달성률 {achievementRate}%
+              달성률 {achievementRateRounded}%
             </p>
           </div>
 
           {myTasks.length === 0 ? (
             <p className="text-center text-sm text-sub2">아직 할 일이 없어요</p>
           ) : (
-            <ul className="space-y-2">
-              {myTasks.map((task) => (
-                <li
-                  key={task.id}
-                  className={`rounded-lg px-4 py-3 ${
-                    task.status === 'DONE' ? 'bg-main1/10' : 'bg-white'
-                  } ring-1 ring-gray-200`}
-                >
-                  <span
-                    className={
-                      task.status === 'DONE'
-                        ? 'text-sub2 line-through'
-                        : 'text-main2'
-                    }
+            <div className="flex flex-col">
+              {twoWeekSections.map(({ weekKey, tasks: weekTasks }, groupIndex) => {
+                const weekLabel =
+                  weekTasks.length > 0
+                    ? formatMonthWeekLabel(weekTasks[0].taskDate)
+                    : formatMonthWeekLabelFromKey(weekKey);
+
+                return (
+                  <section
+                    key={weekKey}
+                    aria-label={`${weekLabel} 할 일`}
                   >
-                    {task.title}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                    {groupIndex > 0 ? (
+                      <div
+                        className="my-5 border-t border-gray-200"
+                        aria-hidden
+                      />
+                    ) : null}
+                    <div className="flex gap-4 sm:gap-6">
+                      <div className="w-18 shrink-0 pt-0.5 text-sm font-medium text-sub2 sm:w-24">
+                        {weekLabel}
+                      </div>
+                      <ul className="min-w-0 flex-1 space-y-3">
+                        {weekTasks.length === 0 ? (
+                          <li className="text-sm text-sub2">
+                            이 주차에 등록된 할 일이 없어요
+                          </li>
+                        ) : (
+                          weekTasks.map((task) => {
+                            const done = task.status === 'DONE';
+                            return (
+                              <li
+                                key={task.id}
+                                className="flex items-start gap-2.5"
+                              >
+                                {done ? (
+                                  <CheckCircle2
+                                    className="mt-0.5 h-5 w-5 shrink-0 text-main1"
+                                    aria-hidden
+                                  />
+                                ) : (
+                                  <Circle
+                                    className="mt-0.5 h-5 w-5 shrink-0 text-gray-400"
+                                    aria-hidden
+                                  />
+                                )}
+                                <span
+                                  className={cn(
+                                    'text-base leading-snug',
+                                    done
+                                      ? 'font-medium text-main1'
+                                      : 'text-main2'
+                                  )}
+                                >
+                                  {task.title}
+                                </span>
+                              </li>
+                            );
+                          })
+                        )}
+                      </ul>
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
