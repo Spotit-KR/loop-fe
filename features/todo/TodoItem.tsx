@@ -191,7 +191,7 @@ export const TodoItem = ({
                           }
                           onKeyDown={(e) => onEditInputKeyDown(task.id, e)}
                           onBlur={() => onUpdateTask(task.id, editingTaskInput)}
-                          className="h-auto border-none px-0 py-0 text-base md:text-base focus-visible:ring-0"
+                          className="h-auto rounded-none border-none px-0 py-0 text-base md:text-base focus-visible:ring-0"
                           aria-label="할 일 수정"
                         />
                       ) : (
