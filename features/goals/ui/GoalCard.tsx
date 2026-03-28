@@ -14,7 +14,8 @@ export interface GoalCardProps {
 export function GoalCard({ goal }: GoalCardProps) {
   const navigate = useNavigate();
   const progressPercent =
-    goal.achievementRate ?? (goal.totalTaskCount > 0
+    goal.achievementRate ??
+    (goal.totalTaskCount > 0
       ? (goal.completedTaskCount / goal.totalTaskCount) * 100
       : 0);
 
@@ -51,10 +52,7 @@ export function GoalCard({ goal }: GoalCardProps) {
             </span>
           </div>
         </div>
-        <ChevronRight
-          className="h-5 w-5 shrink-0 text-sub2"
-          aria-hidden
-        />
+        <ChevronRight className="h-5 w-5 shrink-0 text-sub2" aria-hidden />
       </div>
     </div>
   );
