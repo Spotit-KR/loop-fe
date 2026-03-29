@@ -1,3 +1,4 @@
+import ReactMarkdown from 'react-markdown';
 import { ReviewBookIcon } from 'shared/ui';
 
 interface ReviewStepOutput {
@@ -19,14 +20,22 @@ function KptCard({
   return (
     <div className={`flex-1 border ${borderColor} rounded-[10px] p-4`}>
       <p className={`text-[15px] font-semibold mb-3 ${textColor}`}>{label}</p>
-      <ul className="space-y-2">
+      <div className="space-y-2 text-[13px] text-main2">
         {items.map((item, i) => (
-          <li key={i} className="flex gap-1.5 text-[13px] text-main2">
-            <span className="shrink-0 mt-0.5">•</span>
-            <span>{item}</span>
-          </li>
+          <ReactMarkdown
+            key={i}
+            components={{
+              p: ({ children }) => <p className="my-0">{children}</p>,
+              ul: ({ children }) => <ul className="list-disc pl-4 my-0 space-y-0.5">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal pl-4 my-0 space-y-0.5">{children}</ol>,
+              li: ({ children }) => <li className="my-0">{children}</li>,
+              strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+            }}
+          >
+            {item}
+          </ReactMarkdown>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
