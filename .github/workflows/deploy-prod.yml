@@ -69,8 +69,6 @@ jobs:
           tags: |
             ${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
             ${{ env.HARBOR_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          build-args: |
-            VITE_GRAPHQL_ENDPOINT=${{ secrets.VITE_GRAPHQL_ENDPOINT }}
 
   update-helm:
     runs-on: [self-hosted, macOS, ARM64]
