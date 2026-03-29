@@ -96,12 +96,28 @@ export const Todo = () => {
     [todos]
   );
 
-  const isPast10pmKST =
-    new Date(
+  const canStartReview = useMemo(() => {
+    const nowKST = new Date(
       new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
-    ).getHours() >= 22;
+    );
+    const todayKST = new Date(nowKST);
+    todayKST.setHours(0, 0, 0, 0);
 
-  const canStartReview = allTasksDone || isPast10pmKST;
+    const selectedDateOnly = new Date(selectedDate);
+    selectedDateOnly.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.round(
+      (todayKST.getTime() - selectedDateOnly.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diffDays < 0) return false; // 미래
+    if (diffDays > 3) return false; // 3일 초과 과거
+    if (diffDays > 0) return true;  // 1~3일 전 과거
+
+    // 오늘: 모든 할일 완료 또는 밤 1시(01:00) 이후
+    const isAfter1amKST = nowKST.getHours() >= 1;
+    return allTasksDone || isAfter1amKST;
+  }, [selectedDate, allTasksDone]);
 
   const handlePrevDate = () => {
     setSelectedDate((prev) => {
