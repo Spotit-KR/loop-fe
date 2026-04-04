@@ -79,7 +79,6 @@ export function GoalDetail({ goalId, onBack }: GoalDetailProps) {
     setIsDeleteOpen(true);
   };
 
-  /** TodoItem `onDeleteTodo` → `handleDeleteTodoWrapper`와 동일한 순서: 목표 삭제 후 태스크·목표 쿼리 갱신 */
   const handleConfirmDelete = async () => {
     await deleteGoal(goalId);
     await refetchTasks();

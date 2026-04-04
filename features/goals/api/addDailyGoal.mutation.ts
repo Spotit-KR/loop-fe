@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
-export const MY_GOALS_QUERY = gql`
-  query myGoals($filter: GoalFilter) {
-    myGoals(filter: $filter) {
+export const ADD_DAILY_GOAL_MUTATION = gql`
+  mutation addDailyGoal($input: AddDailyGoalInput!) {
+    addDailyGoal(input: $input) {
       id
       title
       createdAt

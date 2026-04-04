@@ -12,6 +12,8 @@ import { TodoItem } from 'features/todo/TodoItem';
 import { useMyReviews } from 'features/history';
 import { TodayReview } from 'entities/review';
 import { ReviewStartModal } from 'features/review';
+import { useRemoveDailyGoal } from 'features/goals/model/useRemoveDailyGoal';
+import { useAddDailyGoal } from 'features/goals/model/useAddDailyGoal';
 
 function sortByCreatedAtAsc<T extends { id: string; createdAt: Date }>(
   list: T[]
@@ -33,6 +35,8 @@ export const Todo = () => {
   const todayReview = myReviews[0] ?? null;
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
 
+  const dateStr = formatDateToYYYYMMDD(selectedDate);
+
   // History 페이지(useMyReviews)와 동일하게 페이지에서 직접 myGoals 쿼리 호출
   const {
     myGoals,
@@ -45,8 +49,9 @@ export const Todo = () => {
     toggleTask: handleToggleTask,
     deleteTask: handleDeleteTask,
     updateTask: handleUpdateTask,
-    deleteGoal: handleDeleteTodo,
   } = useGoals();
+  const { removeDailyGoal } = useRemoveDailyGoal();
+  const { addDailyGoal } = useAddDailyGoal();
 
   const goals = useMemo(
     () =>
@@ -61,20 +66,17 @@ export const Todo = () => {
     [myGoals]
   );
 
-  const dateStr = formatDateToYYYYMMDD(selectedDate);
   const { myTasks, refetch: refetchTasks } = useTask({
     startDate: dateStr,
     endDate: dateStr,
   });
 
-  // 해당 날짜에 task가 있는 goal만 표시. task가 없으면 전체 goal 표시(할 일 추가 가능)
+  // task가 있는 goal은 카드 형태, task가 없는 goal은 태그 형태로 표시
   const { todos, hiddenGoalIds } = useMemo(() => {
     const goalsWithTasksOnDate = goals.filter((goal) =>
       myTasks.some((t) => String(t.goalId) === goal.id)
     );
-    const goalsToShowRaw =
-      goalsWithTasksOnDate.length > 0 ? goalsWithTasksOnDate : goals;
-    const goalsToShow = sortByCreatedAtAsc(goalsToShowRaw);
+    const goalsToShow = sortByCreatedAtAsc(goalsWithTasksOnDate);
     const hiddenGoalIds = goals
       .filter((g) => !goalsToShow.some((s) => s.id === g.id))
       .map((g) => g.id);
@@ -114,9 +116,7 @@ export const Todo = () => {
   useEffect(() => {
     const hiddenIds = new Set(hiddenGoals.map((g) => g.id));
     setExpandedHiddenGoalIds((prev) => {
-      const next = new Set(
-        [...prev].filter((id) => hiddenIds.has(id))
-      );
+      const next = new Set([...prev].filter((id) => hiddenIds.has(id)));
       if (next.size === prev.size && [...prev].every((id) => next.has(id))) {
         return prev;
       }
@@ -147,7 +147,7 @@ export const Todo = () => {
 
     if (diffDays < 0) return false; // 미래
     if (diffDays > 3) return false; // 3일 초과 과거
-    if (diffDays > 0) return true;  // 1~3일 전 과거
+    if (diffDays > 0) return true; // 1~3일 전 과거
 
     // 오늘: 모든 할일 완료 또는 밤 1시(01:00) 이후
     const isAfter1amKST = nowKST.getHours() >= 1;
@@ -229,20 +229,62 @@ export const Todo = () => {
 
   const handleDeleteTodoWrapper = async (id: string) => {
     try {
-      await handleDeleteTodo(id);
+      const dateString = formatDateToYYYYMMDD(selectedDate);
+      await removeDailyGoal(id, dateString);
       await refetchTasks();
       await refetchGoals();
-    } catch {
-      // 삭제 실패 시 UI 유지
+    } catch (error) {
+      console.error('오늘의 보드에서 목표 제거 실패:', error);
+      // DailyGoal not found 에러는 무시 (이미 제거되었거나 배치되지 않음)
+      if (
+        error instanceof Error &&
+        error.message.includes('DailyGoal not found')
+      ) {
+        console.log('해당 날짜에 DailyGoal이 없음 - 무시하고 계속 진행');
+        await refetchTasks();
+        await refetchGoals();
+        return;
+      }
+      alert(
+        error instanceof Error
+          ? error.message
+          : '오늘의 보드에서 목표를 제거하는데 실패했습니다.'
+      );
     }
   };
 
-  const handleClickExpandHiddenGoal = (goalId: string) => {
-    setExpandedHiddenGoalIds((prev) => {
-      const next = new Set(prev);
-      next.add(goalId);
-      return next;
-    });
+  const handleClickExpandHiddenGoal = async (goalId: string) => {
+    try {
+      const dateString = formatDateToYYYYMMDD(selectedDate);
+      await addDailyGoal(goalId, dateString);
+      await refetchGoals();
+      setExpandedHiddenGoalIds((prev) => {
+        const next = new Set(prev);
+        next.add(goalId);
+        return next;
+      });
+    } catch (error) {
+      console.error('목표 배치 실패:', error);
+      // 이미 배치된 경우 무시하고 계속 진행
+      if (
+        error instanceof Error &&
+        (error.message.includes('duplicate') ||
+          error.message.includes('already exists'))
+      ) {
+        console.log('이미 배치된 목표 - 무시하고 계속 진행');
+        setExpandedHiddenGoalIds((prev) => {
+          const next = new Set(prev);
+          next.add(goalId);
+          return next;
+        });
+        return;
+      }
+      alert(
+        error instanceof Error
+          ? error.message
+          : '목표를 배치하는데 실패했습니다.'
+      );
+    }
   };
 
   const handleStartEdit = (goalId: string, taskId: string, title: string) => {
@@ -431,16 +473,13 @@ export const Todo = () => {
                 {hiddenGoals
                   .filter((g) => !expandedHiddenGoalIds.has(g.id))
                   .map((goal) => (
-                    <div
-                      key={goal.id}
-                      className="min-w-0 max-w-full shrink"
-                    >
+                    <div key={goal.id} className="min-w-0 max-w-full shrink">
                       <button
                         type="button"
                         onClick={() => handleClickExpandHiddenGoal(goal.id)}
                         aria-expanded={false}
                         aria-label={`${goal.title}, 할 일 입력 펼치기`}
-                        className="inline-flex max-w-full min-w-0 rounded-[15px] bg-sub3 px-4 py-3 text-left text-sm text-gray-600 transition-colors hover:bg-gray-300/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/40 sm:px-6"
+                        className="inline-flex max-w-full min-w-0 rounded-[15px] bg-sub3 px-4 py-3 text-center text-sm text-gray-600 transition-colors hover:bg-gray-300/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400/40 sm:px-6"
                       >
                         <span className="line-clamp-2 wrap-break-word">
                           {goal.title}

@@ -1,9 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useCallback,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useCallback, type ReactNode } from 'react';
 import { useMyGoals } from 'features/goals/model/useMyGoals';
 import { useCreateGoal } from 'features/goals/model/useCreateGoal';
 import { useUpdateGoal } from 'features/goals/model/useUpdateGoal';
@@ -42,7 +37,11 @@ interface GoalsContextValue {
     status: TaskStatus
   ) => Promise<void>;
   deleteTask: (goalId: string, taskId: string) => void;
-  updateTask: (goalId: string, taskId: string, newTitle: string) => Promise<void>;
+  updateTask: (
+    goalId: string,
+    taskId: string,
+    newTitle: string
+  ) => Promise<void>;
   deleteGoal: (goalId: string) => Promise<void>;
 }
 

@@ -6,6 +6,17 @@ interface MyGoalsResponse {
   myGoals: MyGoalDTO[];
 }
 
+interface GoalFilter {
+  id?: string;
+  ids?: string[];
+  title?: string;
+  assignedDate?: string;
+}
+
+interface MyGoalsVariables {
+  filter?: GoalFilter;
+}
+
 export interface MyGoal {
   id: string;
   title: string;
@@ -16,13 +27,14 @@ export interface MyGoal {
   achievementRate: number;
 }
 
-export function useMyGoals() {
-  const { data, loading, error, refetch } = useQuery<MyGoalsResponse>(
-    MY_GOALS_QUERY,
-    {
-      fetchPolicy: 'cache-and-network',
-    }
-  );
+export function useMyGoals(variables?: MyGoalsVariables) {
+  const { data, loading, error, refetch } = useQuery<
+    MyGoalsResponse,
+    MyGoalsVariables
+  >(MY_GOALS_QUERY, {
+    variables,
+    fetchPolicy: 'cache-and-network',
+  });
 
   const myGoals: MyGoal[] =
     data?.myGoals?.map((dto) => ({
