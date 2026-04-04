@@ -203,8 +203,8 @@ export const TodoItem = ({
                           <span
                             className={`text-base ${
                               task.completed
-                                ? 'text-main1 font-medium'
-                                : 'text-sub2'
+                              ? 'text-main1 font-medium'
+                              : 'text-sub2'
                             }`}
                           >
                             {task.title}
