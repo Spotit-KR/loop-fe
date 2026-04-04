@@ -149,9 +149,9 @@ export const Todo = () => {
     if (diffDays > 3) return false; // 3일 초과 과거
     if (diffDays > 0) return true;  // 1~3일 전 과거
 
-    // 오늘: 모든 할일 완료 또는 밤 1시(01:00) 이후
-    const isAfter1amKST = nowKST.getHours() >= 1;
-    return allTasksDone || isAfter1amKST;
+    // 오늘: 모든 할일 완료 또는 밤 10시(22:00) 이후
+    const isAfter10pmKST = nowKST.getHours() >= 22;
+    return allTasksDone || isAfter10pmKST;
   }, [selectedDate, allTasksDone]);
 
   const handlePrevDate = () => {
